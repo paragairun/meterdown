@@ -20,6 +20,7 @@ let mapInstance         = null;
 let directionsService   = null;
 let directionsRenderer  = null;
 let mapReady            = false;
+let mapsLoadAttempted   = false;
 let lastRouteData       = null;
 
 /* ════════════════════════════════════════════
@@ -244,20 +245,57 @@ window.submitReport = function() {
 /* ════════════════════════════════════════════
    GOOGLE MAPS INIT
    ════════════════════════════════════════════ */
+
+// Reusable options for Places Autocomplete, biased to Mumbai
+const MUMBAI_AC_OPTIONS = {
+  bounds: null, // filled in once google.maps is available
+  strictBounds: false,
+  componentRestrictions: { country: 'in' },
+};
+
+/**
+ * Called by the Google Maps script tag's `callback=initMap`.
+ * Sets up DirectionsService + Autocomplete immediately (these don't need
+ * a visible DOM element). The actual map canvas (google.maps.Map) is
+ * created lazily, the first time we have a route to draw — this avoids
+ * the "map renders blank until refresh" bug that happens when
+ * google.maps.Map() is initialized on a hidden (display:none) element.
+ */
 window.initMap = function () {
-  mapReady = true;
   try {
     directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-      suppressMarkers: false,
-      polylineOptions: {
-        strokeColor: '#f59e0b',
-        strokeWeight: 4,
-        strokeOpacity: 0.85,
-      },
-    });
 
-    mapInstance = new google.maps.Map(document.getElementById('map'), {
+    MUMBAI_AC_OPTIONS.bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(18.85, 72.75),
+      new google.maps.LatLng(19.32, 73.05)
+    );
+
+    const pickupEl  = document.getElementById('pickup');
+    const dropoffEl = document.getElementById('dropoff');
+    if (pickupEl)  new google.maps.places.Autocomplete(pickupEl,  MUMBAI_AC_OPTIONS);
+    if (dropoffEl) new google.maps.places.Autocomplete(dropoffEl, MUMBAI_AC_OPTIONS);
+
+    mapReady = true;
+    mapsLoadAttempted = true;
+    console.log('Google Maps initialized successfully.');
+  } catch (err) {
+    console.warn('Google Maps init error:', err);
+    mapReady = false;
+    mapsLoadAttempted = true;
+  }
+};
+
+/**
+ * Lazily create the google.maps.Map instance + DirectionsRenderer.
+ * Called right before we render a route, once #map is visible.
+ */
+function ensureMapInstance() {
+  if (mapInstance) return true;
+  const mapEl = document.getElementById('map');
+  if (!mapEl || !mapReady || typeof google === 'undefined' || !google.maps) return false;
+
+  try {
+    mapInstance = new google.maps.Map(mapEl, {
       zoom: 13,
       center: { lat: 19.076, lng: 72.8777 },
       disableDefaultUI: true,
@@ -268,30 +306,50 @@ window.initMap = function () {
       ],
     });
 
+    directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: '#f59e0b',
+        strokeWeight: 4,
+        strokeOpacity: 0.85,
+      },
+    });
     directionsRenderer.setMap(mapInstance);
 
-    const mumbaiBounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(18.85, 72.75),
-      new google.maps.LatLng(19.32, 73.05)
-    );
-    const acOptions = {
-      bounds: mumbaiBounds,
-      strictBounds: false,
-      componentRestrictions: { country: 'in' },
-    };
+    // Force a resize/redraw — fixes blank-tile issues when a map is
+    // created on an element that just became visible.
+    google.maps.event.trigger(mapInstance, 'resize');
+    mapInstance.setCenter({ lat: 19.076, lng: 72.8777 });
 
-    new google.maps.places.Autocomplete(document.getElementById('pickup'),  acOptions);
-    new google.maps.places.Autocomplete(document.getElementById('dropoff'), acOptions);
-
+    return true;
   } catch (err) {
-    console.warn('Google Maps init error:', err);
-    mapReady = false;
+    console.warn('Map instance creation failed:', err);
+    return false;
   }
-};
+}
 
+/**
+ * Called by the script tag's onerror — fires if the Maps script itself
+ * fails to load (network issue, ad-blocker, key restriction, etc.)
+ */
 window.handleMapError = function () {
   mapReady = false;
+  mapsLoadAttempted = true;
+  console.warn('Google Maps script failed to load.');
 };
+
+/**
+ * Safety net: if neither initMap nor handleMapError fired within a few
+ * seconds (script hung, slow network, silently blocked), fall back to
+ * manual mode so the user isn't stuck on an infinite spinner.
+ */
+setTimeout(() => {
+  if (!mapsLoadAttempted) {
+    console.warn('Google Maps did not respond in time — manual fallback enabled.');
+    mapReady = false;
+    mapsLoadAttempted = true;
+  }
+}, 6000);
 
 /* ════════════════════════════════════════════
    FARE CALCULATION
@@ -312,7 +370,17 @@ window.calculateFare = function () {
   setLoading(true);
   hideResults();
 
-  if (mapReady && directionsService) {
+  runRoute(pickup, dropoff, isNight, luggage, actualFare);
+};
+
+/**
+ * Runs the directions request once Maps is ready, waiting briefly
+ * if the API script is still loading (handles the case where the
+ * user clicks "Calculate" before initMap has fired).
+ */
+function runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft = 20) {
+  // If Maps loaded successfully and DirectionsService is ready, use it.
+  if (mapReady && directionsService && typeof google !== 'undefined' && google.maps) {
     directionsService.route(
       {
         origin:      pickup  + (pickup.toLowerCase().includes('mumbai')  ? '' : ', Mumbai'),
@@ -328,20 +396,33 @@ window.calculateFare = function () {
         if (status === google.maps.DirectionsStatus.OK) {
           handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff);
         } else {
+          console.warn('Directions request failed with status:', status);
           showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
         }
       }
     );
-  } else {
-    setTimeout(() => {
-      setLoading(false);
-      showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
-    }, 500);
+    return;
   }
-};
+
+  // Maps failed definitively (script error / timeout) — go straight to manual.
+  if (mapsLoadAttempted) {
+    setLoading(false);
+    showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
+    return;
+  }
+
+  // Maps script is still loading — wait a bit and retry (up to ~4s total).
+  if (attemptsLeft > 0) {
+    setTimeout(() => runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft - 1), 200);
+    return;
+  }
+
+  // Gave up waiting.
+  setLoading(false);
+  showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
+}
 
 function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff) {
-  directionsRenderer.setDirections(result);
   const leg = result.routes[0].legs[0];
 
   const distKm              = leg.distance.value / 1000;
@@ -353,6 +434,20 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
 
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff };
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare);
+
+  // Draw the route on the map AFTER #result-content is visible
+  // (renderResults sets display:flex), so the map div has real size.
+  requestAnimationFrame(() => {
+    const mapEl = document.getElementById('map');
+    if (mapEl) mapEl.style.display = 'block';
+    if (ensureMapInstance()) {
+      directionsRenderer.setDirections(result);
+      google.maps.event.trigger(mapInstance, 'resize');
+    } else if (mapEl) {
+      // Map canvas couldn't be created — hide the map box gracefully.
+      mapEl.style.display = 'none';
+    }
+  });
 }
 
 function computeFare(distKm, waitMin, isNight, luggagePieces) {
@@ -499,6 +594,9 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare) {
   document.getElementById('verdict-box').innerHTML        = '';
   document.getElementById('breakdown-box').innerHTML      = '';
   document.getElementById('feedback-section').style.display = 'none';
+
+  const mapEl = document.getElementById('map');
+  if (mapEl) mapEl.style.display = 'none';
 
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
   document.getElementById('maps-link').href = mapsUrl;
