@@ -383,11 +383,14 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
   const isWaitOverridden = (waitOverride !== null && waitOverride !== undefined);
 
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff, isWaitOverridden };
+
+  // renderResults first — makes #result-content visible so the map div has real dimensions
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
 
-  // Draw route — mapInstance is always initialised by this point
+  // Draw route after the map div is visible
   if (mapInstance && directionsRenderer) {
     directionsRenderer.setDirections(result);
+    google.maps.event.trigger(mapInstance, 'resize');
   }
 }
 
