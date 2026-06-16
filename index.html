@@ -324,8 +324,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- Results -->
+      <!-- Map sits outside result-content so it has real dimensions when Google Maps initialises -->
+      <div id="map" class="map-box" aria-label="Route map" style="display:none"></div>
+
+      <!-- Results -->
       <div id="result-content" class="result-content" style="display:none">
-        <div id="map" class="map-box" aria-label="Route map"></div>
         <div class="metrics-row" id="metrics-row"></div>
         <div id="verdict-box" class="verdict-box"></div>
         <div id="breakdown-box" class="breakdown-box"></div>
@@ -579,8 +582,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- app.js MUST load before the Maps script so initMap is defined when Google calls it -->
   <script src="app.js"></script>
   <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&callback=initMap"
-    async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&v=weekly&callback=initMap&loading=async"
+    async
     onerror="handleMapError()"
   ></script>
   

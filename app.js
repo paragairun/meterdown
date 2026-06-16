@@ -384,10 +384,12 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
 
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff, isWaitOverridden };
 
-  // renderResults first — makes #result-content visible so the map div has real dimensions
+  // renderResults first — makes #result-content visible
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
 
-  // Draw route after the map div is visible
+  // Show map and draw route
+  const mapEl = document.getElementById('map');
+  if (mapEl) mapEl.style.display = 'block';
   if (mapInstance && directionsRenderer) {
     directionsRenderer.setDirections(result);
     google.maps.event.trigger(mapInstance, 'resize');
@@ -540,7 +542,6 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitO
   document.getElementById('verdict-box').innerHTML        = '';
   document.getElementById('breakdown-box').innerHTML      = '';
   document.getElementById('feedback-section').style.display = 'none';
-
   const mapEl = document.getElementById('map');
   if (mapEl) mapEl.style.display = 'none';
 
@@ -582,6 +583,8 @@ function setLoading(on) {
 function hideResults() {
   document.getElementById('empty-state').style.display    = 'block';
   document.getElementById('result-content').style.display = 'none';
+  const mapEl = document.getElementById('map');
+  if (mapEl) mapEl.style.display = 'none';
 }
 
 /* ── KEYBOARD SHORTCUTS & WAIT OVERRIDE TOGGLE ── */
