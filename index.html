@@ -576,11 +576,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </footer>
 
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&callback=initMap"
-    async defer onerror="handleMapError()"
-  ></script>
+  <!-- app.js MUST load before the Maps script so initMap is defined when Google calls it -->
   <script src="app.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&v=weekly&callback=initMap&loading=async"
+    async
+    onerror="handleMapError()"
+  ></script>
   
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZP9JS7LCFS"></script>
