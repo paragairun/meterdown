@@ -366,19 +366,38 @@ window.calculateFare = function () {
   const isNight    = document.getElementById('ride-time').value === 'night';
   const luggage    = parseInt(document.getElementById('luggage').value, 10);
   const actualFare = parseActualFare();
+  const waitOverride = parseWaitOverride();
 
   setLoading(true);
   hideResults();
 
-  runRoute(pickup, dropoff, isNight, luggage, actualFare);
+  runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
 };
+
+/**
+ * Reads the manual "actual wait time" override, if the toggle is on.
+ * Returns wait time in minutes (float), or null if not overridden.
+ */
+function parseWaitOverride() {
+  const toggle = document.getElementById('wait-override-toggle');
+  if (!toggle || !toggle.checked) return null;
+
+  const minRaw = document.getElementById('wait-min').value.trim();
+  const secRaw = document.getElementById('wait-sec').value.trim();
+  const mins = minRaw ? parseFloat(minRaw) : 0;
+  const secs = secRaw ? parseFloat(secRaw) : 0;
+
+  if (isNaN(mins) && isNaN(secs)) return null;
+  const total = (isNaN(mins) ? 0 : mins) + (isNaN(secs) ? 0 : secs) / 60;
+  return total >= 0 ? total : null;
+}
 
 /**
  * Runs the directions request once Maps is ready, waiting briefly
  * if the API script is still loading (handles the case where the
  * user clicks "Calculate" before initMap has fired).
  */
-function runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft = 20) {
+function runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride, attemptsLeft = 20) {
   // If Maps loaded successfully and DirectionsService is ready, use it.
   if (mapReady && directionsService && typeof google !== 'undefined' && google.maps) {
     directionsService.route(
@@ -394,10 +413,10 @@ function runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft = 
       (result, status) => {
         setLoading(false);
         if (status === google.maps.DirectionsStatus.OK) {
-          handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff);
+          handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride);
         } else {
           console.warn('Directions request failed with status:', status);
-          showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
+          showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
         }
       }
     );
@@ -407,22 +426,22 @@ function runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft = 
   // Maps failed definitively (script error / timeout) — go straight to manual.
   if (mapsLoadAttempted) {
     setLoading(false);
-    showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
+    showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
     return;
   }
 
   // Maps script is still loading — wait a bit and retry (up to ~4s total).
   if (attemptsLeft > 0) {
-    setTimeout(() => runRoute(pickup, dropoff, isNight, luggage, actualFare, attemptsLeft - 1), 200);
+    setTimeout(() => runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride, attemptsLeft - 1), 200);
     return;
   }
 
   // Gave up waiting.
   setLoading(false);
-  showManualFallback(pickup, dropoff, isNight, luggage, actualFare);
+  showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
 }
 
-function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff) {
+function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
   const leg = result.routes[0].legs[0];
 
   const distKm              = leg.distance.value / 1000;
@@ -430,10 +449,13 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
   const durationTrafficSec  = leg.duration_in_traffic ? leg.duration_in_traffic.value : durationFreeSec;
   const totalMinutes        = durationTrafficSec / 60;
   const trafficDelaySec     = Math.max(0, durationTrafficSec - durationFreeSec);
-  const waitMinutes         = (trafficDelaySec * TARIFF.STANDSTILL_FACTOR) / 60;
+  const estimatedWaitMinutes = (trafficDelaySec * TARIFF.STANDSTILL_FACTOR) / 60;
 
-  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff };
-  renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare);
+  const waitMinutes = (waitOverride !== null && waitOverride !== undefined) ? waitOverride : estimatedWaitMinutes;
+  const isWaitOverridden = waitOverride !== null && waitOverride !== undefined;
+
+  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff, isWaitOverridden };
+  renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
 
   // Draw the route on the map AFTER #result-content is visible
   // (renderResults sets display:flex), so the map div has real size.
@@ -472,7 +494,7 @@ function computeFare(distKm, waitMin, isNight, luggagePieces) {
 /* ════════════════════════════════════════════
    RENDER RESULTS
    ════════════════════════════════════════════ */
-function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare) {
+function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, isWaitOverridden) {
   const fare = computeFare(distKm, waitMin, isNight, luggage);
 
   document.getElementById('empty-state').style.display    = 'none';
@@ -481,6 +503,8 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare) 
   // Metrics
   const waitMins = Math.floor(waitMin);
   const waitSecs = Math.round((waitMin % 1) * 60);
+  const waitUnitLabel = isWaitOverridden ? 'your reported time' : 'est. standstill';
+  const waitUnitClass = isWaitOverridden ? 'metric-unit overridden' : 'metric-unit';
   document.getElementById('metrics-row').innerHTML = `
     <div class="metric-card">
       <div class="metric-label"><i class="ti ti-road" aria-hidden="true"></i> Distance</div>
@@ -495,7 +519,7 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare) 
     <div class="metric-card">
       <div class="metric-label"><i class="ti ti-traffic-cone" aria-hidden="true"></i> Wait time</div>
       <div class="metric-value">${waitMins}m ${waitSecs}s</div>
-      <div class="metric-unit">est. standstill</div>
+      <div class="${waitUnitClass}">${waitUnitLabel}</div>
     </div>`;
 
   // Verdict
@@ -587,7 +611,7 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare) 
 }
 
 /* ── MANUAL FALLBACK ── */
-function showManualFallback(pickup, dropoff, isNight, luggage, actualFare) {
+function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride) {
   document.getElementById('empty-state').style.display    = 'none';
   document.getElementById('result-content').style.display = 'flex';
   document.getElementById('metrics-row').innerHTML        = '';
@@ -602,12 +626,18 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare) {
   document.getElementById('maps-link').href = mapsUrl;
   document.getElementById('manual-fallback').style.display = 'block';
 
+  // If the user already entered an actual wait time, prefill it here
+  if (waitOverride !== null && waitOverride !== undefined) {
+    document.getElementById('manual-wait').value = (Math.round(waitOverride * 100) / 100);
+  }
+
   document.getElementById('manual-btn').onclick = function () {
     const km   = parseFloat(document.getElementById('manual-km').value);
     const wait = parseFloat(document.getElementById('manual-wait').value) || 0;
     if (isNaN(km) || km <= 0) { alert('Please enter a valid distance in km.'); return; }
     const totalMin = (km / 20) * 60 + wait;
-    renderResults(km, totalMin, wait, isNight, luggage, actualFare);
+    const isOverridden = waitOverride !== null && waitOverride !== undefined;
+    renderResults(km, totalMin, wait, isNight, luggage, actualFare, isOverridden);
   };
 }
 
@@ -632,10 +662,21 @@ function hideResults() {
   document.getElementById('result-content').style.display = 'none';
 }
 
-/* ── KEYBOARD SHORTCUTS ── */
+/* ── KEYBOARD SHORTCUTS & WAIT OVERRIDE TOGGLE ── */
 document.addEventListener('DOMContentLoaded', () => {
-  ['pickup', 'dropoff', 'actual-fare'].forEach(id => {
+  ['pickup', 'dropoff', 'actual-fare', 'wait-min', 'wait-sec'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculateFare(); } });
   });
+
+  const waitToggle = document.getElementById('wait-override-toggle');
+  const waitInputs = document.getElementById('wait-time-inputs');
+  if (waitToggle && waitInputs) {
+    waitToggle.addEventListener('change', () => {
+      waitInputs.style.display = waitToggle.checked ? 'flex' : 'none';
+      if (waitToggle.checked) {
+        document.getElementById('wait-min').focus();
+      }
+    });
+  }
 });

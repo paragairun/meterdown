@@ -251,6 +251,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
+      <div class="field wait-override-field">
+        <label for="actual-wait" class="wait-override-label">
+          <span class="wait-override-label-text">
+            <i class="ti ti-traffic-cone" aria-hidden="true"></i> Actual wait time
+            <span class="optional-tag">optional</span>
+          </span>
+          <span class="wait-toggle-wrap">
+            <input type="checkbox" id="wait-override-toggle" class="wait-toggle-input" />
+            <span class="wait-toggle-track" aria-hidden="true"><span class="wait-toggle-thumb"></span></span>
+          </span>
+        </label>
+        <span class="label-hint">Know your auto was stuck longer than usual? Enter the real wait time and we'll use that instead of our estimate.</span>
+        <div class="wait-time-inputs" id="wait-time-inputs" style="display:none">
+          <div class="wait-time-input-group">
+            <input id="wait-min" type="number" min="0" placeholder="0" />
+            <span class="wait-time-unit">min</span>
+          </div>
+          <div class="wait-time-input-group">
+            <input id="wait-sec" type="number" min="0" max="59" placeholder="0" />
+            <span class="wait-time-unit">sec</span>
+          </div>
+        </div>
+      </div>
+
       <div class="panel-divider"></div>
 
       <div class="panel-header">
@@ -319,11 +343,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <button class="feedback-btn feedback-btn--no" onclick="handleFeedback('no')">
               <i class="ti ti-thumb-down" aria-hidden="true"></i> No, it didn't
             </button>
-          </div>
-
-          <div id="feedback-thanks" class="feedback-thanks" style="display:none">
-            <i class="ti ti-circle-check" aria-hidden="true"></i>
-            Thanks for confirming! This helps us calibrate the calculator better.
           </div>
 
           <div id="report-vehicle-section" class="report-vehicle-section" style="display:none">
