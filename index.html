@@ -324,8 +324,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- Results -->
-      <!-- Map sits outside result-content so it has real dimensions when Google Maps initialises -->
-      <div id="map" class="map-box" aria-label="Route map" style="display:none"></div>
+      <!-- Map is always in the DOM with real dimensions so Google Maps initialises correctly.
+           It's visually hidden (height:0) until a route is drawn. -->
+      <div id="map" class="map-box" aria-label="Route map"></div>
 
       <!-- Results -->
       <div id="result-content" class="result-content" style="display:none">

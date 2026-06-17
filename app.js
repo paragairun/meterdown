@@ -250,6 +250,7 @@ window.initMap = function () {
 
     directionsRenderer = new google.maps.DirectionsRenderer({
       suppressMarkers: false,
+      preserveViewport: false,
       polylineOptions: {
         strokeColor: '#f59e0b',
         strokeWeight: 4,
@@ -389,10 +390,10 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
 
   // Show map and draw route
   const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.style.display = 'block';
+  if (mapEl) mapEl.classList.add('map-visible');
   if (mapInstance && directionsRenderer) {
+    directionsRenderer.setOptions({ preserveViewport: false });
     directionsRenderer.setDirections(result);
-    google.maps.event.trigger(mapInstance, 'resize');
   }
 }
 
@@ -543,7 +544,7 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitO
   document.getElementById('breakdown-box').innerHTML      = '';
   document.getElementById('feedback-section').style.display = 'none';
   const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.style.display = 'none';
+  if (mapEl) mapEl.classList.remove('map-visible');
 
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
   document.getElementById('maps-link').href = mapsUrl;
@@ -584,7 +585,7 @@ function hideResults() {
   document.getElementById('empty-state').style.display    = 'block';
   document.getElementById('result-content').style.display = 'none';
   const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.style.display = 'none';
+  if (mapEl) mapEl.classList.remove('map-visible');
 }
 
 /* ── KEYBOARD SHORTCUTS & WAIT OVERRIDE TOGGLE ── */
