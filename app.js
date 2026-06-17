@@ -12,7 +12,7 @@ const TARIFF = {
   NIGHT_MULTIPLIER:   1.25,
   LUGGAGE_PER_PIECE:  6,
   TOLERANCE:          5,
-  STANDSTILL_FACTOR:  0.60,
+  STANDSTILL_FACTOR:  0.90,
 };
 
 /* ── STATE ── */
