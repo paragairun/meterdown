@@ -324,12 +324,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- Results -->
-      <!-- Map is always in the DOM with real dimensions so Google Maps initialises correctly.
-           It's visually hidden (height:0) until a route is drawn. -->
-      <div id="map" class="map-box" aria-label="Route map"></div>
-
-      <!-- Results -->
       <div id="result-content" class="result-content" style="display:none">
+        <div id="map" class="map-box" aria-label="Route map"></div>
         <div class="metrics-row" id="metrics-row"></div>
         <div id="verdict-box" class="verdict-box"></div>
         <div id="breakdown-box" class="breakdown-box"></div>
@@ -347,6 +343,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <button class="feedback-btn feedback-btn--no" onclick="handleFeedback('no')">
               <i class="ti ti-thumb-down" aria-hidden="true"></i> No, it didn't
             </button>
+          </div>
+
+          <div id="feedback-thanks" class="feedback-thanks" style="display:none">
+            <i class="ti ti-circle-check" aria-hidden="true"></i>
+            Thanks for confirming! This helps us calibrate the calculator better.
           </div>
 
           <div id="report-vehicle-section" class="report-vehicle-section" style="display:none">
@@ -580,13 +581,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </footer>
 
-  <!-- app.js MUST load before the Maps script so initMap is defined when Google calls it -->
-  <script src="app.js"></script>
   <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&v=weekly&callback=initMap&loading=async"
-    async
-    onerror="handleMapError()"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&callback=initMap"
+    async defer onerror="handleMapError()"
   ></script>
+  <script src="app.js"></script>
   
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZP9JS7LCFS"></script>

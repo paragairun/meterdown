@@ -12,7 +12,7 @@ const TARIFF = {
   NIGHT_MULTIPLIER:   1.25,
   LUGGAGE_PER_PIECE:  6,
   TOLERANCE:          5,
-  STANDSTILL_FACTOR:  0.95,
+  STANDSTILL_FACTOR:  0.60,
 };
 
 /* ── STATE ── */
@@ -385,16 +385,12 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
 
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff, isWaitOverridden };
 
-  // renderResults first — makes #result-content visible
+  // Show results — this makes #result-content and #map visible with real dimensions
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
 
-  // Show map and draw route
-  const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.classList.add('map-visible');
-  if (mapInstance && directionsRenderer) {
-    directionsRenderer.setOptions({ preserveViewport: false });
-    directionsRenderer.setDirections(result);
-  }
+  // Trigger resize so Google Maps fills the now-visible container, then draw the route
+  google.maps.event.trigger(mapInstance, 'resize');
+  directionsRenderer.setDirections(result);
 }
 
 function computeFare(distKm, waitMin, isNight, luggagePieces) {
@@ -543,8 +539,6 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitO
   document.getElementById('verdict-box').innerHTML        = '';
   document.getElementById('breakdown-box').innerHTML      = '';
   document.getElementById('feedback-section').style.display = 'none';
-  const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.classList.remove('map-visible');
 
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
   document.getElementById('maps-link').href = mapsUrl;
@@ -584,8 +578,6 @@ function setLoading(on) {
 function hideResults() {
   document.getElementById('empty-state').style.display    = 'block';
   document.getElementById('result-content').style.display = 'none';
-  const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.classList.remove('map-visible');
 }
 
 /* ── KEYBOARD SHORTCUTS & WAIT OVERRIDE TOGGLE ── */
