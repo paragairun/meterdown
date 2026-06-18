@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://paragairun.github.io/meterdown/sitemap.xml
+Sitemap: https://metersahi.in/sitemap.xml
