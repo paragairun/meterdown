@@ -1,245 +1,62 @@
 /**
- * MeterSahi? — Mumbai Auto Rickshaw Fare Checker
- * Official tariff: Maharashtra Motor Vehicle Dept, w.e.f. 1 February 2025
+ * MeterSahi? — app.js
+ * Shared calculator logic for all city pages.
+ * Requires cities.js to be loaded first.
+ * CITY_SLUG must be defined in the page before this script loads.
  */
 
-/* ── TARIFF CONSTANTS ── */
-const TARIFF = {
-  MIN_FARE:           26,
-  MIN_KM:             1.5,
-  RATE_PER_KM:        17.14,
-  WAIT_RATE_PER_MIN:  1.714,
-  NIGHT_MULTIPLIER:   1.25,
-  LUGGAGE_PER_PIECE:  6,
-  TOLERANCE:          5,
-  STANDSTILL_FACTOR:  0.90,
-};
+'use strict';
 
-/* ── STATE ── */
-let mapInstance         = null;
-let directionsService   = null;
-let directionsRenderer  = null;
-let mapReady            = false;
-let lastRouteData       = null;
+/* ── State ── */
+let mapInstance        = null;
+let directionsService  = null;
+let directionsRenderer = null;
+let mapReady           = false;
+let lastRouteData      = null;
+
+const CITY   = CITIES[CITY_SLUG];
+const TARIFF = CITY.tariff;
 
 /* ════════════════════════════════════════════
-   SEARCHABLE SELECT — custom dropdown widget
+   CITY DROPDOWN (BookMyShow style)
    ════════════════════════════════════════════ */
+function buildCityDropdown() {
+  const trigger  = document.getElementById('city-dropdown-trigger');
+  const panel    = document.getElementById('city-dropdown-panel');
+  const search   = document.getElementById('city-search-input');
+  const grid     = document.getElementById('city-dropdown-grid');
+  if (!trigger || !panel) return;
 
-/**
- * Build and wire up a searchable select dropdown.
- * @param {string} wrapperId  — id of .searchable-select div
- * @param {string} inputId    — id of the .ss-input element
- * @param {string} dropdownId — id of the .ss-dropdown element
- * @param {string[]} options  — full list of option strings
- * @param {function} onChange — called with selected value string
- */
-function buildSearchableSelect(wrapperId, inputId, dropdownId, options, onChange) {
-  const wrapper   = document.getElementById(wrapperId);
-  const input     = document.getElementById(inputId);
-  const dropdown  = document.getElementById(dropdownId);
-
-  // Build dropdown inner HTML (search box + list)
-  dropdown.innerHTML = `
-    <div class="ss-search-wrap">
-      <input class="ss-search" type="text" placeholder="Type to search…" autocomplete="off" />
-    </div>
-    <div class="ss-list"></div>`;
-
-  const searchInput = dropdown.querySelector('.ss-search');
-  const list        = dropdown.querySelector('.ss-list');
-
-  function renderList(filter) {
-    const q = (filter || '').toUpperCase().trim();
-    const filtered = q ? options.filter(o => o.toUpperCase().includes(q)) : options;
-    if (filtered.length === 0) {
-      list.innerHTML = '<div class="ss-no-results">No results</div>';
-      return;
-    }
-    list.innerHTML = filtered.map(o =>
-      `<div class="ss-option${input.value === o ? ' selected' : ''}" data-value="${o}">${o}</div>`
-    ).join('');
-    list.querySelectorAll('.ss-option').forEach(el => {
-      el.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        selectOption(el.dataset.value);
+  // Populate grid
+  function renderCities(filter) {
+    const q = (filter || '').toLowerCase();
+    grid.innerHTML = '';
+    CITY_LIST
+      .filter(slug => !q || CITIES[slug].name.toLowerCase().includes(q))
+      .forEach(slug => {
+        const c   = CITIES[slug];
+        const btn = document.createElement('a');
+        btn.href  = `/${slug}/`;
+        btn.className = 'cd-city-btn' + (slug === CITY_SLUG ? ' active' : '');
+        btn.innerHTML = `<span class="cd-city-name">${c.name}</span><span class="cd-city-state">${c.state}</span>`;
+        grid.appendChild(btn);
       });
-    });
+    if (!grid.innerHTML) grid.innerHTML = '<div class="cd-no-results">No cities found</div>';
   }
+  renderCities('');
 
-  function selectOption(value) {
-    input.value = value;
-    input.classList.add('has-value');
-    closeDropdown();
-    updatePlatePreview();
-    if (onChange) onChange(value);
-  }
-
-  function openDropdown() {
-    dropdown.classList.add('open');
-    searchInput.value = '';
-    renderList('');
-    setTimeout(() => searchInput.focus(), 50);
-  }
-
-  function closeDropdown() {
-    dropdown.classList.remove('open');
-  }
-
-  // Open on input click
-  input.addEventListener('click', (e) => {
+  // Toggle
+  trigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (dropdown.classList.contains('open')) {
-      closeDropdown();
-    } else {
-      // Close all other dropdowns first
-      document.querySelectorAll('.ss-dropdown.open').forEach(d => d.classList.remove('open'));
-      openDropdown();
-    }
+    const open = panel.classList.toggle('open');
+    if (open) { search.value = ''; renderCities(''); setTimeout(() => search.focus(), 50); }
   });
-
-  // Live search filter
-  searchInput.addEventListener('input', () => renderList(searchInput.value));
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDropdown();
-    if (e.key === 'Enter') {
-      const first = list.querySelector('.ss-option');
-      if (first) selectOption(first.dataset.value);
-    }
-  });
-
-  // Close on outside click
+  search.addEventListener('input', () => renderCities(search.value));
   document.addEventListener('click', (e) => {
-    if (!wrapper.contains(e.target)) closeDropdown();
+    if (!panel.contains(e.target) && e.target !== trigger) panel.classList.remove('open');
   });
-
-  // Initial render
-  renderList('');
+  search.addEventListener('keydown', e => { if (e.key === 'Escape') panel.classList.remove('open'); });
 }
-
-/* ── VEHICLE NUMBER DATA ── */
-
-// All Indian state/UT codes
-const STATE_CODES = [
-  'AN','AP','AR','AS','BR','CG','CH','DD','DL','DN',
-  'GA','GJ','HP','HR','JH','JK','KA','KL','LA','LD',
-  'MH','ML','MN','MP','MZ','NL','OD','PB','PY','RJ',
-  'SK','TN','TR','TS','UK','UP','WB'
-];
-
-// District numbers 01–99
-const DISTRICT_CODES = Array.from({length: 99}, (_, i) => String(i + 1).padStart(2, '0'));
-
-// Series: A, B, … Z, AA, AB, … ZZ, AAA, … ZZZ
-function generateSeries() {
-  const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const series = [];
-  // Single letters A–Z
-  alpha.forEach(a => series.push(a));
-  // Two letters AA–ZZ
-  alpha.forEach(a => alpha.forEach(b => series.push(a + b)));
-  // Three letters AAA–ZZZ
-  alpha.forEach(a => alpha.forEach(b => alpha.forEach(c => series.push(a + b + c))));
-  return series;
-}
-const SERIES_CODES = generateSeries(); // 26 + 676 + 17576 = 18278 entries
-
-// Numbers 0001–9999
-const NUMBER_CODES = Array.from({length: 9999}, (_, i) => String(i + 1).padStart(4, '0'));
-
-/* ── INIT SEARCHABLE SELECTS ── */
-function initVehicleSelects() {
-  buildSearchableSelect('ss-state',    'vn-state-input',    'ss-state-dropdown',    STATE_CODES,    updatePlatePreview);
-  buildSearchableSelect('ss-district', 'vn-district-input', 'ss-district-dropdown', DISTRICT_CODES, updatePlatePreview);
-  buildSearchableSelect('ss-series',   'vn-series-input',   'ss-series-dropdown',   SERIES_CODES,   updatePlatePreview);
-  buildSearchableSelect('ss-number',   'vn-number-input',   'ss-number-dropdown',   NUMBER_CODES,   updatePlatePreview);
-}
-
-function updatePlatePreview() {
-  const s1 = document.getElementById('vn-state-input').value;
-  const s2 = document.getElementById('vn-district-input').value;
-  const s3 = document.getElementById('vn-series-input').value;
-  const s4 = document.getElementById('vn-number-input').value;
-
-  // Show or update the plate preview
-  let preview = document.getElementById('plate-preview');
-  if (!preview) {
-    preview = document.createElement('div');
-    preview.id = 'plate-preview';
-    preview.className = 'plate-preview';
-    const row = document.querySelector('.vehicle-number-row');
-    if (row) row.insertAdjacentElement('afterend', preview);
-  }
-  const parts = [s1 || 'XX', s2 || '00', s3 || 'XXX', s4 || '0000'];
-  preview.textContent = parts.join(' – ');
-}
-
-/* ── FEEDBACK FLOW ── */
-window.handleFeedback = function(answer) {
-  // Reset both buttons to original state first
-  document.querySelectorAll('.feedback-btn').forEach(b => {
-    b.classList.remove('selected', 'pulse');
-    const icon = b.querySelector('.ti');
-    if (icon && icon.dataset.originalClass) {
-      icon.className = icon.dataset.originalClass;
-    }
-  });
-
-  const btn = document.querySelector(answer === 'yes' ? '.feedback-btn--yes' : '.feedback-btn--no');
-  if (btn) {
-    btn.classList.add('selected');
-    // Swap icon to a checkmark to confirm the click
-    const icon = btn.querySelector('.ti');
-    if (icon) {
-      if (!icon.dataset.originalClass) icon.dataset.originalClass = icon.className;
-      icon.className = 'ti ti-check';
-    }
-    // brief "pressed" pulse for tactile feedback
-    requestAnimationFrame(() => btn.classList.add('pulse'));
-  }
-
-  const reportSection = document.getElementById('report-vehicle-section');
-  const thanksBox = document.getElementById('feedback-thanks');
-
-  if (answer === 'no') {
-    thanksBox.style.display = 'none';
-    reportSection.style.display = 'block';
-    // Reset confirmation
-    document.getElementById('report-confirmation').style.display = 'none';
-    document.getElementById('btn-submit-report').style.display = 'flex';
-    // Init selects (safe to call multiple times)
-    initVehicleSelects();
-    // Scroll to report section smoothly
-    reportSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } else {
-    reportSection.style.display = 'none';
-    // Show a thank-you confirmation for "Yes"
-    thanksBox.style.display = 'flex';
-  }
-};
-
-window.submitReport = function() {
-  const state    = document.getElementById('vn-state-input').value;
-  const district = document.getElementById('vn-district-input').value;
-  const series   = document.getElementById('vn-series-input').value;
-  const number   = document.getElementById('vn-number-input').value;
-
-  if (!state || !district || !series || !number) {
-    alert('Please select all four parts of the vehicle number plate.');
-    return;
-  }
-
-  const plateNo = `${state} ${district} ${series} ${number}`;
-  console.log('Report submitted for vehicle:', plateNo, '| Route data:', lastRouteData);
-
-  // Hide submit button, show confirmation
-  document.getElementById('btn-submit-report').style.display = 'none';
-  const conf = document.getElementById('report-confirmation');
-  conf.style.display = 'flex';
-  conf.querySelector
-    ? conf.innerHTML = `<i class="ti ti-circle-check" aria-hidden="true"></i> Report for <strong>${plateNo}</strong> submitted. Thank you for helping keep Mumbai's autos honest!`
-    : null;
-};
 
 /* ════════════════════════════════════════════
    GOOGLE MAPS INIT
@@ -247,20 +64,14 @@ window.submitReport = function() {
 window.initMap = function () {
   try {
     directionsService = new google.maps.DirectionsService();
-
     directionsRenderer = new google.maps.DirectionsRenderer({
       suppressMarkers: false,
       preserveViewport: false,
-      polylineOptions: {
-        strokeColor: '#f59e0b',
-        strokeWeight: 4,
-        strokeOpacity: 0.85,
-      },
+      polylineOptions: { strokeColor: '#f59e0b', strokeWeight: 4, strokeOpacity: 0.85 },
     });
-
     mapInstance = new google.maps.Map(document.getElementById('map'), {
       zoom: 13,
-      center: { lat: 19.076, lng: 72.8777 },
+      center: CITY.mapCenter,
       disableDefaultUI: true,
       zoomControl: true,
       styles: [
@@ -268,33 +79,25 @@ window.initMap = function () {
         { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
       ],
     });
-
     directionsRenderer.setMap(mapInstance);
 
-    const mumbaiBounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(18.85, 72.75),
-      new google.maps.LatLng(19.32, 73.05)
+    const b = CITY.acBounds;
+    const bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(b.sw.lat, b.sw.lng),
+      new google.maps.LatLng(b.ne.lat, b.ne.lng)
     );
-    const acOptions = {
-      bounds: mumbaiBounds,
-      strictBounds: false,
-      componentRestrictions: { country: 'in' },
-    };
-
+    const acOptions = { bounds, strictBounds: false, componentRestrictions: { country: 'in' } };
     new google.maps.places.Autocomplete(document.getElementById('pickup'),  acOptions);
     new google.maps.places.Autocomplete(document.getElementById('dropoff'), acOptions);
 
     mapReady = true;
   } catch (err) {
-    console.warn('Google Maps init error:', err);
+    console.warn('Maps init error:', err);
     mapReady = false;
   }
 };
 
-window.handleMapError = function () {
-  mapReady = false;
-  console.warn('Google Maps failed to load.');
-};
+window.handleMapError = function () { mapReady = false; };
 
 /* ════════════════════════════════════════════
    FARE CALCULATION
@@ -302,64 +105,30 @@ window.handleMapError = function () {
 window.calculateFare = function () {
   const pickup  = document.getElementById('pickup').value.trim();
   const dropoff = document.getElementById('dropoff').value.trim();
+  if (!pickup || !dropoff) { alert('Please enter both pickup and drop-off.'); return; }
 
-  if (!pickup || !dropoff) {
-    alert('Please enter both a pickup and a drop-off location.');
-    return;
-  }
-
-  const isNight    = document.getElementById('ride-time').value === 'night';
-  const luggage    = parseInt(document.getElementById('luggage').value, 10);
-  const actualFare = parseActualFare();
+  const isNight     = document.getElementById('ride-time').value === 'night';
+  const luggage     = parseInt(document.getElementById('luggage').value, 10);
+  const actualFare  = parseActualFare();
   const waitOverride = parseWaitOverride();
 
   setLoading(true);
   hideResults();
 
-  runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
-};
-
-/**
- * Reads the manual "actual wait time" override, if the toggle is on.
- * Returns wait time in minutes (float), or null if not overridden.
- */
-function parseWaitOverride() {
-  const toggle = document.getElementById('wait-override-toggle');
-  if (!toggle || !toggle.checked) return null;
-
-  const minRaw = document.getElementById('wait-min').value.trim();
-  const secRaw = document.getElementById('wait-sec').value.trim();
-  const mins = minRaw ? parseFloat(minRaw) : 0;
-  const secs = secRaw ? parseFloat(secRaw) : 0;
-
-  if (isNaN(mins) && isNaN(secs)) return null;
-  const total = (isNaN(mins) ? 0 : mins) + (isNaN(secs) ? 0 : secs) / 60;
-  return total >= 0 ? total : null;
-}
-
-/**
- * Runs the directions request once Maps is ready, waiting briefly
- * if the API script is still loading (handles the case where the
- * user clicks "Calculate" before initMap has fired).
- */
-function runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride) {
   if (mapReady && directionsService) {
+    const cityName = CITY.name;
     directionsService.route(
       {
-        origin:      pickup  + (pickup.toLowerCase().includes('mumbai')  ? '' : ', Mumbai'),
-        destination: dropoff + (dropoff.toLowerCase().includes('mumbai') ? '' : ', Mumbai'),
+        origin:      pickup  + (pickup.toLowerCase().includes(cityName.toLowerCase())  ? '' : `, ${cityName}`),
+        destination: dropoff + (dropoff.toLowerCase().includes(cityName.toLowerCase()) ? '' : `, ${cityName}`),
         travelMode:  google.maps.TravelMode.DRIVING,
-        drivingOptions: {
-          departureTime: new Date(),
-          trafficModel:  google.maps.TrafficModel.BEST_GUESS,
-        },
+        drivingOptions: { departureTime: new Date(), trafficModel: google.maps.TrafficModel.BEST_GUESS },
       },
       (result, status) => {
         setLoading(false);
         if (status === google.maps.DirectionsStatus.OK) {
           handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride);
         } else {
-          console.warn('Directions request failed with status:', status);
           showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
         }
       }
@@ -368,79 +137,55 @@ function runRoute(pickup, dropoff, isNight, luggage, actualFare, waitOverride) {
     setLoading(false);
     showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
   }
-}
+};
 
 function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
   const leg = result.routes[0].legs[0];
+  const distKm             = leg.distance.value / 1000;
+  const durationFreeSec    = leg.duration.value;
+  const durationTrafficSec = leg.duration_in_traffic ? leg.duration_in_traffic.value : durationFreeSec;
+  const totalMinutes       = durationTrafficSec / 60;
+  const trafficDelaySec    = Math.max(0, durationTrafficSec - durationFreeSec);
+  const estimatedWait      = (trafficDelaySec * TARIFF.STANDSTILL_FACTOR) / 60;
+  const waitMinutes        = (waitOverride !== null && waitOverride !== undefined) ? waitOverride : estimatedWait;
+  const isWaitOverridden   = (waitOverride !== null && waitOverride !== undefined);
 
-  const distKm              = leg.distance.value / 1000;
-  const durationFreeSec     = leg.duration.value;
-  const durationTrafficSec  = leg.duration_in_traffic ? leg.duration_in_traffic.value : durationFreeSec;
-  const totalMinutes        = durationTrafficSec / 60;
-  const trafficDelaySec     = Math.max(0, durationTrafficSec - durationFreeSec);
-  const estimatedWaitMinutes = (trafficDelaySec * TARIFF.STANDSTILL_FACTOR) / 60;
-
-  const waitMinutes      = (waitOverride !== null && waitOverride !== undefined) ? waitOverride : estimatedWaitMinutes;
-  const isWaitOverridden = (waitOverride !== null && waitOverride !== undefined);
-
-  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, pickup, dropoff, isWaitOverridden };
-
-  // Show results — this makes #result-content and #map visible with real dimensions
+  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden };
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
 
-  // Trigger resize so Google Maps fills the now-visible container, then draw the route
-  google.maps.event.trigger(mapInstance, 'resize');
   directionsRenderer.setDirections(result);
-}
-
-function computeFare(distKm, waitMin, isNight, luggagePieces) {
-  let base = distKm <= TARIFF.MIN_KM
-    ? TARIFF.MIN_FARE
-    : Math.max(TARIFF.MIN_FARE, Math.round(distKm * TARIFF.RATE_PER_KM));
-
-  const waitCharge    = Math.round(waitMin * TARIFF.WAIT_RATE_PER_MIN);
-  const luggageCharge = luggagePieces * TARIFF.LUGGAGE_PER_PIECE;
-  let subtotal = base + waitCharge + luggageCharge;
-  let nightAdd = 0;
-
-  if (isNight) {
-    const withNight = Math.round(subtotal * TARIFF.NIGHT_MULTIPLIER);
-    nightAdd  = withNight - subtotal;
-    subtotal  = withNight;
-  }
-
-  return { base, waitCharge, luggageCharge, nightAdd, subtotal };
+  google.maps.event.trigger(mapInstance, 'resize');
 }
 
 /* ════════════════════════════════════════════
    RENDER RESULTS
    ════════════════════════════════════════════ */
 function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, isWaitOverridden) {
-  const fare = computeFare(distKm, waitMin, isNight, luggage);
+  const fare = computeFare(distKm, waitMin, isNight, luggage, TARIFF);
 
   document.getElementById('empty-state').style.display    = 'none';
   document.getElementById('result-content').style.display = 'flex';
 
-  // Metrics
   const waitMins = Math.floor(waitMin);
   const waitSecs = Math.round((waitMin % 1) * 60);
-  const waitUnitLabel = isWaitOverridden ? 'your reported time' : 'est. standstill';
-  const waitUnitClass = isWaitOverridden ? 'metric-unit overridden' : 'metric-unit';
+  const waitLabel = isWaitOverridden ? 'your reported time' : 'est. standstill';
+  const waitClass = isWaitOverridden ? 'metric-unit overridden' : 'metric-unit';
+
   document.getElementById('metrics-row').innerHTML = `
     <div class="metric-card">
-      <div class="metric-label"><i class="ti ti-road" aria-hidden="true"></i> Distance</div>
+      <div class="metric-label"><i class="ti ti-road"></i> Distance</div>
       <div class="metric-value">${distKm.toFixed(1)}</div>
       <div class="metric-unit">km</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label"><i class="ti ti-clock" aria-hidden="true"></i> Journey</div>
+      <div class="metric-label"><i class="ti ti-clock"></i> Journey</div>
       <div class="metric-value">${Math.round(totalMin)}</div>
-      <div class="metric-unit">min (with traffic)</div>
+      <div class="metric-unit">min (traffic)</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label"><i class="ti ti-traffic-cone" aria-hidden="true"></i> Wait time</div>
+      <div class="metric-label"><i class="ti ti-traffic-cone"></i> Wait</div>
       <div class="metric-value">${waitMins}m ${waitSecs}s</div>
-      <div class="${waitUnitClass}">${waitUnitLabel}</div>
+      <div class="${waitClass}">${waitLabel}</div>
     </div>`;
 
   // Verdict
@@ -449,122 +194,215 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
     const low  = fare.subtotal - TARIFF.TOLERANCE;
     const high = fare.subtotal + TARIFF.TOLERANCE;
     const diff = actualFare - fare.subtotal;
-
     if (actualFare >= low && actualFare <= high) {
-      verdictEl.innerHTML = `
-        <div class="verdict--ok">
-          <div class="verdict-emoji">✅</div>
-          <div class="verdict-title">Meter looks correct</div>
-          <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> — within the acceptable ±₹${TARIFF.TOLERANCE} band of the correct fare <strong>₹${fare.subtotal}</strong>. No tampering detected.</div>
-        </div>`;
+      verdictEl.innerHTML = `<div class="verdict--ok">
+        <div class="verdict-emoji">✅</div>
+        <div class="verdict-title">Meter looks correct</div>
+        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> — within ±₹${TARIFF.TOLERANCE} of the correct fare <strong>₹${fare.subtotal}</strong>.</div>
+      </div>`;
     } else if (actualFare > high) {
       const pct = Math.round((diff / fare.subtotal) * 100);
-      verdictEl.innerHTML = `
-        <div class="verdict--tampered">
-          <div class="verdict-emoji">🚨</div>
-          <div class="verdict-title">Possible meter tampering</div>
-          <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> but correct fare is <strong>₹${fare.subtotal}</strong>. That's <span class="overcharge-amount">₹${diff} extra (${pct}% overcharge)</span>. You are within your rights to refuse the excess and file a complaint.</div>
-        </div>`;
+      verdictEl.innerHTML = `<div class="verdict--tampered">
+        <div class="verdict-emoji">🚨</div>
+        <div class="verdict-title">Possible meter tampering</div>
+        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> but correct fare is <strong>₹${fare.subtotal}</strong>. That's <span class="overcharge-amount">₹${diff} extra (${pct}% overcharge)</span>.</div>
+      </div>`;
     } else {
-      verdictEl.innerHTML = `
-        <div class="verdict--neutral">
-          <div class="verdict-emoji">ℹ️</div>
-          <div class="verdict-title">Fare is lower than expected</div>
-          <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong>, our estimate is <strong>₹${fare.subtotal}</strong>. The driver may have taken a shorter route or skipped wait charges in your favour.</div>
-        </div>`;
+      verdictEl.innerHTML = `<div class="verdict--neutral">
+        <div class="verdict-emoji">ℹ️</div>
+        <div class="verdict-title">Fare is lower than expected</div>
+        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong>, estimate is <strong>₹${fare.subtotal}</strong>. Driver may have taken a shorter route.</div>
+      </div>`;
     }
   } else {
-    verdictEl.innerHTML = `
-      <div class="verdict--neutral">
-        <div class="verdict-emoji">🧮</div>
-        <div class="verdict-title">Correct fare: ₹${fare.subtotal}</div>
-        <div class="verdict-body">Acceptable range: <strong>₹${fare.subtotal - TARIFF.TOLERANCE} – ₹${fare.subtotal + TARIFF.TOLERANCE}</strong>. Enter the meter reading above and recalculate to check for tampering.</div>
-      </div>`;
+    verdictEl.innerHTML = `<div class="verdict--neutral">
+      <div class="verdict-emoji">🧮</div>
+      <div class="verdict-title">Correct fare: ₹${fare.subtotal}</div>
+      <div class="verdict-body">Acceptable range: <strong>₹${fare.subtotal - TARIFF.TOLERANCE} – ₹${fare.subtotal + TARIFF.TOLERANCE}</strong>.</div>
+    </div>`;
   }
 
   // Breakdown
-  let rows = `
-    <div class="breakdown-row">
-      <span>Base fare (${distKm.toFixed(1)} km${distKm <= TARIFF.MIN_KM ? ', minimum' : ''})</span>
-      <span class="amount">₹${fare.base}</span>
-    </div>`;
-  if (fare.waitCharge > 0) rows += `
-    <div class="breakdown-row">
-      <span>Wait time (${waitMins}m ${waitSecs}s)</span>
-      <span class="amount">₹${fare.waitCharge}</span>
-    </div>`;
-  if (fare.luggageCharge > 0) rows += `
-    <div class="breakdown-row">
-      <span>Luggage (${luggage} piece${luggage > 1 ? 's' : ''})</span>
-      <span class="amount">₹${fare.luggageCharge}</span>
-    </div>`;
-  if (isNight && fare.nightAdd > 0) rows += `
-    <div class="breakdown-row">
-      <span>Night surcharge (+25%) <span class="tag-night">12 AM – 5 AM</span></span>
-      <span class="amount">+₹${fare.nightAdd}</span>
-    </div>`;
-  rows += `
-    <div class="breakdown-row">
-      <span>Total correct fare</span>
-      <span class="amount">₹${fare.subtotal}</span>
-    </div>`;
+  const freeWait = TARIFF.WAIT_FREE_MINS || 0;
+  let rows = `<div class="breakdown-row"><span>Base fare (${distKm.toFixed(1)} km${distKm <= TARIFF.MIN_KM ? ', minimum' : ''})</span><span class="amount">₹${fare.base}</span></div>`;
+  if (fare.waitCharge > 0) {
+    rows += `<div class="breakdown-row"><span>Wait time (${waitMins}m ${waitSecs}s${freeWait > 0 ? `, first ${freeWait}m free` : ''})</span><span class="amount">₹${fare.waitCharge}</span></div>`;
+  }
+  if (fare.luggageCharge > 0) {
+    rows += `<div class="breakdown-row"><span>Luggage (${luggage} piece${luggage > 1 ? 's' : ''})</span><span class="amount">₹${fare.luggageCharge}</span></div>`;
+  }
+  if (isNight && fare.nightAdd > 0) {
+    const pct = Math.round((TARIFF.NIGHT_MULTIPLIER - 1) * 100);
+    rows += `<div class="breakdown-row"><span>Night surcharge (+${pct}%)</span><span class="amount">+₹${fare.nightAdd}</span></div>`;
+  }
+  rows += `<div class="breakdown-row total-row"><span>Total correct fare</span><span class="amount">₹${fare.subtotal}</span></div>`;
 
   document.getElementById('breakdown-box').innerHTML = `
     <div class="breakdown-title">Fare breakdown</div>
     ${rows}
     <div class="fare-band-label">Tolerance band: ₹${fare.subtotal - TARIFF.TOLERANCE} – ₹${fare.subtotal + TARIFF.TOLERANCE}</div>`;
 
-  // Show feedback section
+  // Feedback
   const fb = document.getElementById('feedback-section');
-  fb.style.display = 'block';
-  // Reset feedback state
+  if (fb) {
+    fb.style.display = 'block';
+    document.querySelectorAll('.feedback-btn').forEach(b => {
+      b.classList.remove('selected', 'pulse');
+      const icon = b.querySelector('.ti');
+      if (icon && icon.dataset.originalClass) icon.className = icon.dataset.originalClass;
+    });
+    const reportSection = document.getElementById('report-vehicle-section');
+    if (reportSection) reportSection.style.display = 'none';
+    const conf = document.getElementById('report-confirmation');
+    if (conf) conf.style.display = 'none';
+    const btn = document.getElementById('btn-submit-report');
+    if (btn) btn.style.display = 'flex';
+    const thanks = document.getElementById('feedback-thanks');
+    if (thanks) thanks.style.display = 'none';
+  }
+
+  document.getElementById('manual-fallback').style.display = 'none';
+}
+
+/* ════════════════════════════════════════════
+   FEEDBACK FLOW
+   ════════════════════════════════════════════ */
+window.handleFeedback = function (answer) {
   document.querySelectorAll('.feedback-btn').forEach(b => {
     b.classList.remove('selected', 'pulse');
     const icon = b.querySelector('.ti');
     if (icon && icon.dataset.originalClass) icon.className = icon.dataset.originalClass;
   });
-  document.getElementById('report-vehicle-section').style.display = 'none';
-  document.getElementById('report-confirmation').style.display = 'none';
-  document.getElementById('btn-submit-report').style.display = 'flex';
-  document.getElementById('feedback-thanks').style.display = 'none';
+  const btn = document.querySelector(answer === 'yes' ? '.feedback-btn--yes' : '.feedback-btn--no');
+  if (btn) {
+    btn.classList.add('selected');
+    const icon = btn.querySelector('.ti');
+    if (icon) { if (!icon.dataset.originalClass) icon.dataset.originalClass = icon.className; icon.className = 'ti ti-check'; }
+    requestAnimationFrame(() => btn.classList.add('pulse'));
+  }
+  const reportSection = document.getElementById('report-vehicle-section');
+  const thanksBox     = document.getElementById('feedback-thanks');
+  if (answer === 'no') {
+    if (thanksBox) thanksBox.style.display = 'none';
+    if (reportSection) {
+      reportSection.style.display = 'block';
+      document.getElementById('report-confirmation').style.display = 'none';
+      document.getElementById('btn-submit-report').style.display = 'flex';
+      initVehicleSelects();
+      reportSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  } else {
+    if (reportSection) reportSection.style.display = 'none';
+    if (thanksBox) thanksBox.style.display = 'flex';
+  }
+};
 
-  document.getElementById('manual-fallback').style.display = 'none';
+window.submitReport = function () {
+  const s1 = document.getElementById('vn-state-input').value;
+  const s2 = document.getElementById('vn-district-input').value;
+  const s3 = document.getElementById('vn-series-input').value;
+  const s4 = document.getElementById('vn-number-input').value;
+  if (!s1 || !s2 || !s3 || !s4) { alert('Please select all four parts of the number plate.'); return; }
+  const plateNo = `${s1} ${s2} ${s3} ${s4}`;
+  console.log('Report:', plateNo, CITY_SLUG, lastRouteData);
+  document.getElementById('btn-submit-report').style.display = 'none';
+  const conf = document.getElementById('report-confirmation');
+  conf.innerHTML = `<i class="ti ti-circle-check"></i> Report for <strong>${plateNo}</strong> submitted. Thank you!`;
+  conf.style.display = 'flex';
+};
+
+/* ════════════════════════════════════════════
+   SEARCHABLE SELECT (vehicle number plate)
+   ════════════════════════════════════════════ */
+const STATE_CODES   = ['AN','AP','AR','AS','BR','CG','CH','DD','DL','DN','GA','GJ','HP','HR','JH','JK','KA','KL','LA','LD','MH','ML','MN','MP','MZ','NL','OD','PB','PY','RJ','SK','TN','TR','TS','UK','UP','WB'];
+const DISTRICT_CODES = Array.from({length:99}, (_,i) => String(i+1).padStart(2,'0'));
+function generateSeries() {
+  const a='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const s=[];
+  a.forEach(x=>s.push(x));
+  a.forEach(x=>a.forEach(y=>s.push(x+y)));
+  a.forEach(x=>a.forEach(y=>a.forEach(z=>s.push(x+y+z))));
+  return s;
+}
+const SERIES_CODES = generateSeries();
+const NUMBER_CODES = Array.from({length:9999}, (_,i) => String(i+1).padStart(4,'0'));
+
+function buildSearchableSelect(wrapperId, inputId, dropdownId, options, onChange) {
+  const wrapper  = document.getElementById(wrapperId);
+  const input    = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!wrapper||!input||!dropdown) return;
+  dropdown.innerHTML = `<div class="ss-search-wrap"><input class="ss-search" type="text" placeholder="Type to search…" autocomplete="off"/></div><div class="ss-list"></div>`;
+  const searchInput = dropdown.querySelector('.ss-search');
+  const list        = dropdown.querySelector('.ss-list');
+
+  function renderList(filter) {
+    const q = (filter||'').toUpperCase().trim();
+    const filtered = q ? options.filter(o=>o.toUpperCase().includes(q)) : options;
+    if (!filtered.length) { list.innerHTML='<div class="ss-no-results">No results</div>'; return; }
+    list.innerHTML = filtered.map(o=>`<div class="ss-option${input.value===o?' selected':''}" data-value="${o}">${o}</div>`).join('');
+    list.querySelectorAll('.ss-option').forEach(el=>el.addEventListener('mousedown',e=>{e.preventDefault();selectOption(el.dataset.value);}));
+  }
+  function selectOption(v) { input.value=v; input.classList.add('has-value'); closeDropdown(); if(onChange)onChange(v); }
+  function openDropdown() { dropdown.classList.add('open'); searchInput.value=''; renderList(''); setTimeout(()=>searchInput.focus(),50); }
+  function closeDropdown() { dropdown.classList.remove('open'); }
+  input.addEventListener('click',e=>{e.stopPropagation();dropdown.classList.contains('open')?closeDropdown():(document.querySelectorAll('.ss-dropdown.open').forEach(d=>d.classList.remove('open')),openDropdown());});
+  searchInput.addEventListener('input',()=>renderList(searchInput.value));
+  searchInput.addEventListener('keydown',e=>{if(e.key==='Escape')closeDropdown();if(e.key==='Enter'){const f=list.querySelector('.ss-option');if(f)selectOption(f.dataset.value);}});
+  document.addEventListener('click',e=>{if(!wrapper.contains(e.target))closeDropdown();});
+  renderList('');
 }
 
-/* ── MANUAL FALLBACK ── */
+function initVehicleSelects() {
+  buildSearchableSelect('ss-state','vn-state-input','ss-state-dropdown',STATE_CODES,()=>{});
+  buildSearchableSelect('ss-district','vn-district-input','ss-district-dropdown',DISTRICT_CODES,()=>{});
+  buildSearchableSelect('ss-series','vn-series-input','ss-series-dropdown',SERIES_CODES,()=>{});
+  buildSearchableSelect('ss-number','vn-number-input','ss-number-dropdown',NUMBER_CODES,()=>{});
+}
+
+/* ════════════════════════════════════════════
+   MANUAL FALLBACK
+   ════════════════════════════════════════════ */
 function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride) {
   document.getElementById('empty-state').style.display    = 'none';
   document.getElementById('result-content').style.display = 'flex';
   document.getElementById('metrics-row').innerHTML        = '';
   document.getElementById('verdict-box').innerHTML        = '';
   document.getElementById('breakdown-box').innerHTML      = '';
-  document.getElementById('feedback-section').style.display = 'none';
-
+  const fb = document.getElementById('feedback-section');
+  if (fb) fb.style.display = 'none';
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
   document.getElementById('maps-link').href = mapsUrl;
   document.getElementById('manual-fallback').style.display = 'block';
-
-  // If the user already entered an actual wait time, prefill it here
   if (waitOverride !== null && waitOverride !== undefined) {
     document.getElementById('manual-wait').value = (Math.round(waitOverride * 100) / 100);
   }
-
   document.getElementById('manual-btn').onclick = function () {
     const km   = parseFloat(document.getElementById('manual-km').value);
     const wait = parseFloat(document.getElementById('manual-wait').value) || 0;
-    if (isNaN(km) || km <= 0) { alert('Please enter a valid distance in km.'); return; }
-    const totalMin = (km / 20) * 60 + wait;
+    if (isNaN(km)||km<=0){alert('Enter a valid distance.');return;}
     const isOverridden = waitOverride !== null && waitOverride !== undefined;
-    renderResults(km, totalMin, wait, isNight, luggage, actualFare, isOverridden);
+    renderResults(km, (km/20)*60+wait, wait, isNight, luggage, actualFare, isOverridden);
   };
 }
 
-/* ── HELPERS ── */
+/* ════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════ */
 function parseActualFare() {
   const raw = document.getElementById('actual-fare').value.trim();
   if (!raw) return null;
   const val = parseFloat(raw);
-  return isNaN(val) || val <= 0 ? null : val;
+  return isNaN(val)||val<=0 ? null : val;
+}
+
+function parseWaitOverride() {
+  const toggle = document.getElementById('wait-override-toggle');
+  if (!toggle||!toggle.checked) return null;
+  const mins = parseFloat(document.getElementById('wait-min').value) || 0;
+  const secs = parseFloat(document.getElementById('wait-sec').value) || 0;
+  const total = mins + secs / 60;
+  return total >= 0 ? total : null;
 }
 
 function setLoading(on) {
@@ -572,7 +410,6 @@ function setLoading(on) {
   const spinner = document.getElementById('spinner');
   btn.disabled  = on;
   spinner.classList.toggle('visible', on);
-  spinner.setAttribute('aria-hidden', on ? 'false' : 'true');
 }
 
 function hideResults() {
@@ -580,21 +417,31 @@ function hideResults() {
   document.getElementById('result-content').style.display = 'none';
 }
 
-/* ── KEYBOARD SHORTCUTS & WAIT OVERRIDE TOGGLE ── */
-document.addEventListener('DOMContentLoaded', () => {
-  ['pickup', 'dropoff', 'actual-fare', 'wait-min', 'wait-sec'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculateFare(); } });
-  });
+/* ════════════════════════════════════════════
+   AUTO-SET NIGHT/DAY BASED ON CURRENT TIME
+   ════════════════════════════════════════════ */
+function autoSetRideTime() {
+  const sel = document.getElementById('ride-time');
+  if (!sel) return;
+  sel.value = isNightTime(TARIFF) ? 'night' : 'day';
+}
 
-  const waitToggle = document.getElementById('wait-override-toggle');
-  const waitInputs = document.getElementById('wait-time-inputs');
-  if (waitToggle && waitInputs) {
-    waitToggle.addEventListener('change', () => {
-      waitInputs.style.display = waitToggle.checked ? 'flex' : 'none';
-      if (waitToggle.checked) {
-        document.getElementById('wait-min').focus();
-      }
+/* ════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildCityDropdown();
+  autoSetRideTime();
+  ['pickup','dropoff','actual-fare','wait-min','wait-sec'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key==='Enter'){e.preventDefault();calculateFare();} });
+  });
+  const toggle = document.getElementById('wait-override-toggle');
+  const inputs = document.getElementById('wait-time-inputs');
+  if (toggle && inputs) {
+    toggle.addEventListener('change', () => {
+      inputs.style.display = toggle.checked ? 'flex' : 'none';
+      if (toggle.checked) document.getElementById('wait-min').focus();
     });
   }
 });
