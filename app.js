@@ -150,8 +150,15 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
   const waitMinutes        = (waitOverride !== null && waitOverride !== undefined) ? waitOverride : estimatedWait;
   const isWaitOverridden   = (waitOverride !== null && waitOverride !== undefined);
 
+  // Extract coordinates for deep links
+  const pickupLat  = leg.start_location.lat();
+  const pickupLng  = leg.start_location.lng();
+  const dropLat    = leg.end_location.lat();
+  const dropLng    = leg.end_location.lng();
+
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden };
-  renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden);
+  renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden,
+    pickup, dropoff, pickupLat, pickupLng, dropLat, dropLng);
 
   directionsRenderer.setDirections(result);
   google.maps.event.trigger(mapInstance, 'resize');
@@ -160,7 +167,8 @@ function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dr
 /* ════════════════════════════════════════════
    RENDER RESULTS
    ════════════════════════════════════════════ */
-function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, isWaitOverridden) {
+function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, isWaitOverridden,
+  pickupName, dropName, pickupLat, pickupLng, dropLat, dropLng) {
   const fare = computeFare(distKm, waitMin, isNight, luggage, TARIFF);
 
   document.getElementById('empty-state').style.display    = 'none';
@@ -262,6 +270,15 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
   }
 
   document.getElementById('manual-fallback').style.display = 'none';
+
+  // Ride comparison — shown after fare is calculated
+  if (typeof renderRideComparison === 'function' && pickupName) {
+    renderRideComparison(
+      distKm, waitMin, fare.subtotal,
+      pickupName, dropName,
+      pickupLat, pickupLng, dropLat, dropLng
+    );
+  }
 }
 
 /* ════════════════════════════════════════════

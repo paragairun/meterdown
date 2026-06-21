@@ -416,3 +416,160 @@ input, select { font-family: var(--font-ui); }
 .pac-container { border-radius:var(--radius-md)!important; border:1px solid var(--border-md)!important; box-shadow:var(--shadow-md)!important; font-family:var(--font-ui)!important; margin-top:2px!important; }
 .pac-item { font-size:13px!important; padding:8px 12px!important; }
 .pac-item:hover { background:var(--saffron-lt)!important; }
+
+/* ─────────────────────────────────────────────
+   RIDE COMPARISON SECTION
+───────────────────────────────────────────── */
+#ride-compare-section {
+  display: none;
+  padding: 18px 20px;
+  border-top: 0.5px solid var(--border);
+}
+.rc-header { margin-bottom: 14px; }
+.rc-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.rc-title .ti { font-size: 17px; color: var(--saffron-dk); }
+.rc-subtitle { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* Recommendation banner */
+.rc-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+}
+.rc-rec--auto {
+  background: var(--green-lt);
+  border: 1px solid #bbf7d0;
+}
+.rc-rec--app {
+  background: var(--saffron-lt);
+  border: 1px solid #fde68a;
+}
+.rc-rec-icon { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.rc-recommendation strong { font-size: 14px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 2px; }
+.rc-recommendation p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+
+/* Cards grid */
+.rc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rc-card {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+.rc-card--winner {
+  border-color: var(--green);
+  background: var(--green-lt);
+}
+.rc-card--auto.rc-card--winner {
+  border-color: var(--green);
+}
+.rc-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-right: 48px;
+}
+.rc-logo { font-size: 20px; flex-shrink: 0; line-height: 1; }
+.rc-brand {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.rc-type { font-size: 11px; color: var(--text-hint); margin-top: 1px; }
+.rc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.rc-badge--meter { background: var(--surface-3); color: var(--text-secondary); border: 0.5px solid var(--border-md); }
+
+.rc-cheapest-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--green);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.rc-fare {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.rc-fare-range {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-hint);
+  letter-spacing: 0;
+}
+.rc-fare-note { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+.rc-surge-note {
+  font-size: 11px;
+  color: var(--text-hint);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1.4;
+}
+.rc-surge-note .ti { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+
+.rc-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.rc-open-btn:hover { opacity: 0.85; text-decoration: none; }
+.rc-open-btn .ti { font-size: 13px; }
+
+.rc-disclaimer {
+  font-size: 11px;
+  color: var(--text-hint);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+.rc-disclaimer .ti { font-size: 13px; flex-shrink: 0; margin-top: 1px; color: var(--saffron-dk); }
