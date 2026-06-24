@@ -255,65 +255,37 @@ const CITY_LIST = [
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
 ];
 
-/* ════════════════════════════════════════════
-   GEOLOCATION REDIRECT (used on root index.html)
-   ════════════════════════════════════════════ */
-
-// Maps address fragments → city slug (used by Nominatim + Google geocoder)
+/* ── Geolocation city matching ── */
+// Maps Google Places city/locality name fragments → city slug
 const GEO_CITY_MAP = {
-  'mumbai':       'mumbai',
-  'navi mumbai':  'mumbai',
-  'thane':        'mumbai',
-  'delhi':        'delhi',
-  'new delhi':    'delhi',
-  'noida':        'delhi',
-  'gurugram':     'delhi',
-  'gurgaon':      'delhi',
-  'faridabad':    'delhi',
-  'ghaziabad':    'delhi',
-  'bengaluru':    'bengaluru',
-  'bangalore':    'bengaluru',
-  'hyderabad':    'hyderabad',
-  'secunderabad': 'hyderabad',
-  'pune':         'pune',
-  'pimpri':       'pune',
-  'kochi':        'kochi',
-  'ernakulam':    'kochi',
-  'thrissur':     'kochi',
-  'kolkata':      'kolkata',
-  'howrah':       'kolkata',
-  'chennai':      'chennai',
-  'ahmedabad':    'ahmedabad',
+  'mumbai':          'mumbai',
+  'navi mumbai':     'mumbai',
+  'thane':           'mumbai',
+  'delhi':           'delhi',
+  'new delhi':       'delhi',
+  'noida':           'delhi',
+  'gurugram':        'delhi',
+  'gurgaon':         'delhi',
+  'faridabad':       'delhi',
+  'ghaziabad':       'delhi',
+  'bengaluru':       'bengaluru',
+  'bangalore':       'bengaluru',
+  'hyderabad':       'hyderabad',
+  'secunderabad':    'hyderabad',
+  'pune':            'pune',
+  'pimpri':          'pune',
+  'kochi':           'kochi',
+  'ernakulam':       'kochi',
+  'thrissur':        'kochi',
+  'kolkata':         'kolkata',
+  'howrah':          'kolkata',
+  'chennai':         'chennai',
+  'ahmedabad':       'ahmedabad',
 };
 
-
- * No API key needed. Works independently of Google Maps loading state.
- * Falls back to bounding-box matching if API fails.
+/**
+ * Given a reverse-geocoded address string, return the matching city slug.
  */
-
-// City bounding boxes for fast coordinate-based fallback
-// [minLat, maxLat, minLng, maxLng]
-const CITY_BOUNDS = {
-  mumbai:    [18.85, 19.32, 72.75, 73.05],
-  delhi:     [28.40, 28.88, 76.84, 77.35],
-  bengaluru: [12.80, 13.15, 77.40, 77.80],
-  hyderabad: [17.20, 17.60, 78.25, 78.65],
-  pune:      [18.40, 18.65, 73.70, 74.00],
-  kochi:     [9.75,  10.15, 76.10, 76.45],
-  kolkata:   [22.40, 22.75, 88.20, 88.55],
-  chennai:   [12.85, 13.25, 80.05, 80.45],
-  ahmedabad: [22.85, 23.20, 72.40, 72.75],
-};
-
-function cityFromCoords(lat, lng) {
-  for (const [slug, [minLat, maxLat, minLng, maxLng]] of Object.entries(CITY_BOUNDS)) {
-    if (lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng) {
-      return slug;
-    }
-  }
-  return null;
-}
-
 function cityFromAddress(address) {
   if (!address) return null;
   const lower = address.toLowerCase();
@@ -323,86 +295,9 @@ function cityFromAddress(address) {
   return null;
 }
 
-async function reverseGeocode(lat, lng) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`,
-      { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(4000) }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    // Try city, town, state_district, county fields from Nominatim
-    const candidates = [
-      data.address?.city,
-      data.address?.town,
-      data.address?.state_district,
-      data.address?.county,
-      data.address?.suburb,
-      data.display_name,
-    ].filter(Boolean).join(' ');
-    return cityFromAddress(candidates);
-  } catch {
-    return null;
-  }
-}
-
-function detectCityAndRedirect() {
-  if (!navigator.geolocation) { showCityChooser(); return; }
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude: lat, longitude: lng } = pos.coords;
-
-      // 1. Fast path — bounding box check (instant, no network)
-      let slug = cityFromCoords(lat, lng);
-
-      // 2. If not in any box, try Nominatim reverse geocode
-      if (!slug) {
-        slug = await reverseGeocode(lat, lng);
-      }
-
-      // 3. If still nothing, try Google Maps geocoder if available
-      if (!slug && window.google && google.maps) {
-        slug = await new Promise((resolve) => {
-          const geocoder = new google.maps.Geocoder();
-          geocoder.geocode(
-            { location: { lat, lng } },
-            (results, status) => {
-              if (status === 'OK' && results[0]) {
-                resolve(cityFromAddress(results[0].formatted_address));
-              } else {
-                resolve(null);
-              }
-            }
-          );
-        });
-      }
-
-      if (slug) {
-        window.location.href = `/${slug}/`;
-      } else {
-        showCityChooser();
-      }
-    },
-    (err) => {
-      console.warn('Geolocation error:', err.code, err.message);
-      showCityChooser();
-    },
-    {
-      timeout: 12000,       // longer timeout — iOS asks permission first
-      maximumAge: 300000,   // accept cached position up to 5 min old
-      enableHighAccuracy: false  // faster, less battery drain
-    }
-  );
-}
-
-function showCityChooser() {
-  const el = document.getElementById('city-chooser');
-  if (el) el.style.display = 'block';
-  const spinner = document.getElementById('geo-spinner');
-  if (spinner) spinner.style.display = 'none';
-}
-
+/* ════════════════════════════════════════════
+   FARE ENGINE
+   ════════════════════════════════════════════ */
 function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   const T = tariff;
 
