@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="MeterSahi?" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MeterSahi? — Auto Rickshaw Fare Checker for Indian Cities</title>
   <meta name="description" content="Free auto rickshaw fare calculator for Mumbai, Delhi, Bengaluru, Hyderabad, Pune, Kochi, Kolkata, Chennai, Ahmedabad. Check if your meter is tampered." />
   <link rel="canonical" href="https://metersahi.in/" />
@@ -13,68 +10,46 @@
   <meta property="og:title" content="MeterSahi? — Auto Rickshaw Fare Checker" />
   <meta property="og:description" content="Free meter fare calculator for 9 Indian cities. Instantly know if your auto is overcharging you." />
   <meta name="theme-color" content="#1a1a1a" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+
   <style>
-    *{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
-    html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-    body{
-      font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-      background:#1a1a1a;color:#fff;
-      min-height:100vh;
-      display:-webkit-flex;display:flex;
-      -webkit-flex-direction:column;flex-direction:column;
-      -webkit-align-items:center;align-items:center;
-      -webkit-justify-content:center;justify-content:center;
-      padding:24px;padding-bottom:max(24px,env(safe-area-inset-bottom));
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
     .logo{font-size:36px;font-weight:600;color:#f59e0b;letter-spacing:-0.02em;margin-bottom:6px}
     .tagline{font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:40px;text-align:center}
-    .geo-spinner{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;gap:14px;margin-bottom:32px}
-    .spinner-ring{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#f59e0b;border-radius:50%;-webkit-animation:spin 0.7s linear infinite;animation:spin 0.7s linear infinite}
-    @-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}
+    .geo-spinner{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:32px}
+    .spinner-ring{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#f59e0b;border-radius:50%;animation:spin 0.7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .geo-text{font-size:14px;color:rgba(255,255,255,0.5)}
     .city-chooser{display:none;width:100%;max-width:440px;text-align:center}
     .city-chooser h2{font-size:20px;font-weight:500;margin-bottom:6px}
     .city-chooser p{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:24px}
     .city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-    @media(max-width:360px){.city-grid{grid-template-columns:repeat(2,1fr)}}
-    .city-btn{
-      padding:14px 8px;background:rgba(255,255,255,0.05);
-      border:1px solid rgba(255,255,255,0.1);
-      -webkit-border-radius:12px;border-radius:12px;
-      color:#fff;font-size:13px;font-weight:500;cursor:pointer;
-      -webkit-transition:background 0.15s,border-color 0.15s,color 0.15s;
-      transition:background 0.15s,border-color 0.15s,color 0.15s;
-      text-decoration:none;
-      display:-webkit-flex;display:flex;
-      -webkit-flex-direction:column;flex-direction:column;
-      -webkit-align-items:center;align-items:center;
-      gap:5px;
-      -webkit-tap-highlight-color:transparent;
-      touch-action:manipulation;
-    }
-    .city-btn:hover,.city-btn:active{background:rgba(245,158,11,0.15);border-color:#f59e0b;color:#f59e0b}
-    .city-emoji{font-size:22px}
-    .permission-note{font-size:12px;color:rgba(255,255,255,0.3);margin-top:16px;line-height:1.6;max-width:300px;margin-left:auto;margin-right:auto}
+    .city-btn{padding:14px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:5px}
+    .city-btn:hover{background:rgba(245,158,11,0.15);border-color:#f59e0b;color:#f59e0b}
+    .city-btn .city-emoji{font-size:22px}
+    .or-divider{font-size:12px;color:rgba(255,255,255,0.3);margin:8px 0}
   </style>
 </head>
 <body>
-  <div style="text-align:center;width:100%;max-width:440px">
+  <div style="text-align:center">
     <div class="logo">🛺 MeterSahi?</div>
     <div class="tagline">Auto rickshaw fare checker · 9 Indian cities</div>
 
+    <!-- Detecting location -->
     <div class="geo-spinner" id="geo-spinner">
       <div class="spinner-ring"></div>
-      <div class="geo-text" id="geo-text">Detecting your city…</div>
+      <div class="geo-text">Detecting your city…</div>
     </div>
 
+    <!-- City chooser — shown if geolocation fails or is denied -->
     <div class="city-chooser" id="city-chooser">
       <h2>Select your city</h2>
-      <p>Pick your city to check auto fares</p>
+      <p>We couldn't detect your location. Pick your city below.</p>
       <div class="city-grid">
         <a class="city-btn" href="/mumbai/"><span class="city-emoji">🏙️</span>Mumbai</a>
         <a class="city-btn" href="/delhi/"><span class="city-emoji">🕌</span>New Delhi</a>
@@ -86,23 +61,22 @@
         <a class="city-btn" href="/chennai/"><span class="city-emoji">🎭</span>Chennai</a>
         <a class="city-btn" href="/ahmedabad/"><span class="city-emoji">🏛️</span>Ahmedabad</a>
       </div>
-      <p class="permission-note">Allow location access when prompted to auto-detect your city next time.</p>
     </div>
   </div>
 
   <script src="/cities.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&callback=onMapsReady"
+    async defer
+  ></script>
   <script>
-    // Detect immediately — no Google Maps dependency
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() { detectCityAndRedirect(); });
-    } else {
-      detectCityAndRedirect();
-    }
-    // Safety net: 15s (iOS needs time for permission prompt)
-    setTimeout(function() {
-      var s = document.getElementById('geo-spinner');
-      if (s && s.style.display !== 'none') { showCityChooser(); }
-    }, 15000);
+    function onMapsReady() { detectCityAndRedirect(); }
+    // Safety net: if Maps doesn't load in 5s, show chooser
+    setTimeout(() => {
+      if (document.getElementById('geo-spinner').style.display !== 'none') {
+        showCityChooser();
+      }
+    }, 5000);
   </script>
 </body>
 </html>
