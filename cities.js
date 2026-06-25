@@ -255,49 +255,88 @@ const CITY_LIST = [
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
 ];
 
-/* ── Geolocation city matching ── */
-// Maps Google Places city/locality name fragments → city slug
-const GEO_CITY_MAP = {
-  'mumbai':          'mumbai',
-  'navi mumbai':     'mumbai',
-  'thane':           'mumbai',
-  'delhi':           'delhi',
-  'new delhi':       'delhi',
-  'noida':           'delhi',
-  'gurugram':        'delhi',
-  'gurgaon':         'delhi',
-  'faridabad':       'delhi',
-  'ghaziabad':       'delhi',
-  'bengaluru':       'bengaluru',
-  'bangalore':       'bengaluru',
-  'hyderabad':       'hyderabad',
-  'secunderabad':    'hyderabad',
-  'pune':            'pune',
-  'pimpri':          'pune',
-  'kochi':           'kochi',
-  'ernakulam':       'kochi',
-  'thrissur':        'kochi',
-  'kolkata':         'kolkata',
-  'howrah':          'kolkata',
-  'chennai':         'chennai',
-  'ahmedabad':       'ahmedabad',
+/* ════════════════════════════════════════════
+   CITY DETECTION & REDIRECT
+   Uses IP-based geolocation — no browser permission
+   needed, works instantly on all browsers.
+   Falls back to city chooser if API fails.
+   ════════════════════════════════════════════ */
+
+var GEO_CITY_MAP = {
+  'mumbai':       'mumbai',
+  'navi mumbai':  'mumbai',
+  'thane':        'mumbai',
+  'delhi':        'delhi',
+  'new delhi':    'delhi',
+  'noida':        'delhi',
+  'gurugram':     'delhi',
+  'gurgaon':      'delhi',
+  'faridabad':    'delhi',
+  'ghaziabad':    'delhi',
+  'bengaluru':    'bengaluru',
+  'bangalore':    'bengaluru',
+  'hyderabad':    'hyderabad',
+  'secunderabad': 'hyderabad',
+  'pune':         'pune',
+  'pimpri':       'pune',
+  'kochi':        'kochi',
+  'ernakulam':    'kochi',
+  'thrissur':     'kochi',
+  'kolkata':      'kolkata',
+  'howrah':       'kolkata',
+  'chennai':      'chennai',
+  'ahmedabad':    'ahmedabad',
 };
 
-/**
- * Given a reverse-geocoded address string, return the matching city slug.
- */
-function cityFromAddress(address) {
-  if (!address) return null;
-  const lower = address.toLowerCase();
-  for (const [key, slug] of Object.entries(GEO_CITY_MAP)) {
-    if (lower.includes(key)) return slug;
+function cityFromString(str) {
+  if (!str) return null;
+  var lower = str.toLowerCase();
+  for (var key in GEO_CITY_MAP) {
+    if (lower.indexOf(key) !== -1) return GEO_CITY_MAP[key];
   }
   return null;
 }
 
-/* ════════════════════════════════════════════
-   FARE ENGINE
-   ════════════════════════════════════════════ */
+function detectCityAndRedirect() {
+  // IP-based detection — no user permission, works on all browsers instantly
+  var done = false;
+
+  // Safety net — show chooser after 5s if API hasn't responded
+  var safetyTimer = setTimeout(function() {
+    if (!done) { done = true; showCityChooser(); }
+  }, 5000);
+
+  fetch('https://ipapi.co/json/')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (done) return;
+      done = true;
+      clearTimeout(safetyTimer);
+      // ipapi.co returns city, region fields
+      var candidate = (data.city || '') + ' ' + (data.region || '');
+      var slug = cityFromString(candidate);
+      if (slug) {
+        window.location.href = '/' + slug + '/';
+      } else {
+        showCityChooser();
+      }
+    })
+    .catch(function() {
+      if (done) return;
+      done = true;
+      clearTimeout(safetyTimer);
+      showCityChooser();
+    });
+}
+
+function showCityChooser() {
+  var el = document.getElementById('city-chooser');
+  if (el) el.style.display = 'block';
+  var spinner = document.getElementById('geo-spinner');
+  if (spinner) spinner.style.display = 'none';
+}
+
+
 function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   const T = tariff;
 
@@ -335,46 +374,3 @@ function isNightTime(tariff) {
   return hour >= s && hour < e;
 }
 
-/* ════════════════════════════════════════════
-   GEOLOCATION REDIRECT (used on root index.html)
-   ════════════════════════════════════════════ */
-function detectCityAndRedirect() {
-  if (!navigator.geolocation) { showCityChooser(); return; }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const { latitude, longitude } = pos.coords;
-      // Reverse geocode using Google Maps Geocoder
-      if (window.google && google.maps) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode(
-          { location: { lat: latitude, lng: longitude } },
-          (results, status) => {
-            if (status === 'OK' && results[0]) {
-              const addr = results[0].formatted_address;
-              const slug = cityFromAddress(addr);
-              if (slug) {
-                window.location.href = `/${slug}/`;
-              } else {
-                showCityChooser();
-              }
-            } else {
-              showCityChooser();
-            }
-          }
-        );
-      } else {
-        showCityChooser();
-      }
-    },
-    () => { showCityChooser(); },
-    { timeout: 6000 }
-  );
-}
-
-function showCityChooser() {
-  const el = document.getElementById('city-chooser');
-  if (el) el.style.display = 'block';
-  const spinner = document.getElementById('geo-spinner');
-  if (spinner) spinner.style.display = 'none';
-}
