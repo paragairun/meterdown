@@ -416,3 +416,319 @@ input, select { font-family: var(--font-ui); }
 .pac-container { border-radius:var(--radius-md)!important; border:1px solid var(--border-md)!important; box-shadow:var(--shadow-md)!important; font-family:var(--font-ui)!important; margin-top:2px!important; }
 .pac-item { font-size:13px!important; padding:8px 12px!important; }
 .pac-item:hover { background:var(--saffron-lt)!important; }
+
+/* ─────────────────────────────────────────────
+   RIDE COMPARISON SECTION
+───────────────────────────────────────────── */
+#ride-compare-section {
+  display: none;
+  padding: 18px 20px;
+  border-top: 0.5px solid var(--border);
+}
+.rc-header { margin-bottom: 14px; }
+.rc-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.rc-title .ti { font-size: 17px; color: var(--saffron-dk); }
+.rc-subtitle { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* Recommendation banner */
+.rc-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+}
+.rc-rec--auto {
+  background: var(--green-lt);
+  border: 1px solid #bbf7d0;
+}
+.rc-rec--app {
+  background: var(--saffron-lt);
+  border: 1px solid #fde68a;
+}
+.rc-rec-icon { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.rc-recommendation strong { font-size: 14px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 2px; }
+.rc-recommendation p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+
+/* Cards grid */
+.rc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rc-card {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+.rc-card--winner {
+  border-color: var(--green);
+  background: var(--green-lt);
+}
+.rc-card--auto.rc-card--winner {
+  border-color: var(--green);
+}
+.rc-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-right: 48px;
+}
+.rc-logo { font-size: 20px; flex-shrink: 0; line-height: 1; }
+.rc-brand {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.rc-type { font-size: 11px; color: var(--text-hint); margin-top: 1px; }
+.rc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.rc-badge--meter { background: var(--surface-3); color: var(--text-secondary); border: 0.5px solid var(--border-md); }
+
+.rc-cheapest-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--green);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.rc-fare {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.rc-fare-range {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-hint);
+  letter-spacing: 0;
+}
+.rc-fare-note { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+.rc-surge-note {
+  font-size: 11px;
+  color: var(--text-hint);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1.4;
+}
+.rc-surge-note .ti { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+
+.rc-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.rc-open-btn:hover { opacity: 0.85; text-decoration: none; }
+.rc-open-btn .ti { font-size: 13px; }
+
+.rc-disclaimer {
+  font-size: 11px;
+  color: var(--text-hint);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+.rc-disclaimer .ti { font-size: 13px; flex-shrink: 0; margin-top: 1px; color: var(--saffron-dk); }
+
+/* ─────────────────────────────────────────────
+   SAFARI / iOS FIXES
+   Tested on Safari 15+ / iOS 15+
+───────────────────────────────────────────── */
+
+/* Fix font stack — DM Sans fallback for slow Google Fonts on iOS */
+:root {
+  --font-ui:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'SF Mono', 'Fira Mono', 'Courier New', monospace;
+}
+
+/* Prevent iOS Safari text inflation */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Safe area padding for iPhone notch/home bar */
+.site-header {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.site-footer {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Sticky header — needs -webkit-sticky for older Safari */
+.site-header {
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+/* Flexbox — webkit prefixes for older Safari */
+.header-inner,
+.hero-chips,
+.feedback-btns,
+.feedback-thanks,
+.complaint-inner,
+.complaint-options,
+.rc-cards,
+.rc-recommendation,
+.metrics-row,
+.vehicle-number-row,
+.manual-inputs,
+.wait-time-inputs,
+.wait-override-label {
+  display: -webkit-flex;
+  display: flex;
+}
+
+/* Grid — add explicit webkit support */
+.main-grid,
+.options-grid,
+.how-grid,
+.fare-card-grid,
+.footer-links {
+  display: -webkit-box;
+  display: -ms-flexbox;
+}
+
+/* Smooth scrolling in dropdowns — iOS momentum scroll */
+.ss-list,
+#city-dropdown-grid {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* FAQ details/summary — Safari needs explicit display */
+details { display: block; }
+summary { display: -webkit-flex; display: flex; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+
+/* Remove default iOS button styles on inputs/buttons */
+input, select, button, a.city-btn, a.rc-open-btn {
+  -webkit-appearance: none;
+  appearance: none;
+}
+select {
+  /* Safari shows default arrow — keep it but fix padding */
+  -webkit-appearance: menulist;
+  appearance: menulist;
+  background-image: none;
+}
+
+/* Fix tap highlight on iOS */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent double-tap zoom on buttons */
+.btn-calculate, .btn-manual, .btn-report,
+.feedback-btn, .rc-open-btn, .city-dropdown-trigger {
+  touch-action: manipulation;
+}
+
+/* Border-radius — explicit webkit for older Safari */
+.panel, .how-card, .faq-item, .complaint-card,
+.rc-card, .verdict--ok, .verdict--tampered, .verdict--neutral,
+.city-dropdown-panel, .ss-dropdown {
+  -webkit-border-radius: inherit;
+}
+
+/* Fix for Safari input zoom — keep font-size >= 16px to prevent zoom */
+.field input, .field select,
+.rupee-input input,
+.wait-time-input-group input,
+#city-search-input, .ss-search, .cd-search-input {
+  font-size: max(16px, 14px); /* prevents Safari auto-zoom on focus */
+}
+
+/* Fix for Safari viewport height bug with 100vh */
+.results-panel { min-height: 480px; }
+
+/* transition webkit prefixes */
+.city-dropdown-panel,
+.feedback-btn,
+.btn-calculate,
+.btn-manual,
+.wait-toggle-track,
+.wait-toggle-thumb {
+  -webkit-transition: all 0.15s;
+}
+
+/* Animation webkit prefix */
+.spinner-ring {
+  -webkit-animation: spin 0.7s linear infinite;
+}
+.feedback-btn.pulse {
+  -webkit-animation: fb-pulse 0.35s ease-out;
+}
+.feedback-thanks {
+  -webkit-animation: fade-in 0.25s ease-out;
+}
+
+/* Mobile responsive fixes for small iPhones (SE, mini) */
+@media (max-width: 375px) {
+  .main-grid { gap: 12px; }
+  .hero-heading { font-size: 20px; }
+  .hero-chips { gap: 6px; }
+  .hero-chip { font-size: 11px; padding: 3px 8px; }
+  .rc-cards { grid-template-columns: 1fr 1fr; }
+  .vehicle-number-row { gap: 4px; }
+  .vn-group { max-width: 80px; }
+}
+
+/* Fix city dropdown panel position on mobile */
+@media (max-width: 760px) {
+  .city-dropdown-panel {
+    right: -8px;
+    width: calc(100vw - 32px);
+    max-width: 340px;
+  }
+  .header-inner { gap: 8px; }
+  .tariff-badge { display: none; } /* hide on very small screens */
+  .brand-sub { display: none; }
+}
