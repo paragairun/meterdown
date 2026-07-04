@@ -179,8 +179,29 @@ input, select { font-family: var(--font-ui); }
 .panel { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-xl); overflow:hidden; box-shadow:var(--shadow-sm); }
 .panel-header { display:flex; align-items:center; gap:10px; padding:16px 20px 4px; }
 .panel-header h2 { font-size:13px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; }
+
+/* Vehicle type toggle (Auto/Taxi) */
+.vehicle-toggle { display:flex; gap:6px; margin:0 20px 4px; padding:4px; background:var(--surface-3); border-radius:var(--radius-md); }
+.vt-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; border:none; border-radius:calc(var(--radius-md) - 2px); background:transparent; color:var(--text-secondary); font-size:13px; font-weight:600; cursor:pointer; transition:background 0.15s,color 0.15s; }
+.vt-btn:hover { color:var(--text-primary); }
+.vt-btn.active { background:var(--surface); color:var(--saffron-dk); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
 .panel-step { width:22px; height:22px; border-radius:50%; background:var(--black); color:#fff; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .panel-divider { border:none; border-top:0.5px solid var(--border); margin:16px 0 0; }
+
+/* Collapsible optional sections (Ride details / What did the driver ask?) */
+.panel-header--collapsible { cursor:pointer; user-select:none; justify-content:flex-start; }
+.panel-header--collapsible:hover { filter:brightness(0.97); }
+.panel-header--collapsible .optional-tag { margin-left:2px; }
+.panel-header--tint-amber { background:var(--saffron-lt); padding-top:12px; padding-bottom:12px; margin-top:16px; }
+.panel-header--tint-gray  { background:var(--surface-3);  padding-top:12px; padding-bottom:12px; }
+.panel-chevron { margin-left:auto; font-size:16px; color:var(--text-secondary); transition:transform 0.2s ease; }
+.panel-chevron.expanded { transform:rotate(180deg); }
+.collapsible-content { display:none; }
+.collapsible-content.expanded { display:block; animation:collapsible-fade 0.15s ease; }
+@keyframes collapsible-fade { from{opacity:0;} to{opacity:1;} }
+/* tinted headers sit right after .panel-divider, which already adds
+   top spacing - avoid doubling it for the second (gray) header */
+.panel-divider + .panel-header--tint-gray { margin-top:0; }
 .input-panel { padding-bottom:20px; }
 
 /* ── FIELDS ── */

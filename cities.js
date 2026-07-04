@@ -39,6 +39,24 @@ const CITIES = {
       TOLERANCE:         5,
       STANDSTILL_FACTOR: 0.90,
     },
+    // Black & Yellow Taxi (CNG), Maharashtra Motor Vehicles Dept,
+    // w.e.f. 1 Feb 2025. Source: transport.maharashtra.gov.in
+    // (Black Yellow Taxi Tariff Card PDF). Non-AC only for now —
+    // AC taxi is +10% per the same tariff card but not yet wired
+    // into the calculator.
+    taxiTariffDate: '1 Feb 2025',
+    taxiTariff: {
+      MIN_FARE:          31,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       20.66,
+      WAIT_RATE_PER_MIN: 2.066,  // 10% of per-km rate, per tariff card note
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
     rtoContact: [
       { label: 'RTO Mumbai Central', phone: '9076201010', email: 'mh01taxicomplaint@gmail.com' },
       { label: 'RTO Mumbai West',    phone: '9920240202', email: 'mh02.autotaxicomplaint@gmail.com' },
@@ -58,6 +76,20 @@ const CITIES = {
       MIN_KM:            1.5,
       RATE_PER_KM:       17.14,
       WAIT_RATE_PER_MIN: 1.714,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    // Same statewide Maharashtra Black & Yellow Taxi tariff as Mumbai.
+    taxiTariffDate: '1 Feb 2025',
+    taxiTariff: {
+      MIN_FARE:          31,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       20.66,
+      WAIT_RATE_PER_MIN: 2.066,
       NIGHT_MULTIPLIER:  1.25,
       NIGHT_START:       0,
       NIGHT_END:         5,

@@ -1,8 +1,19 @@
 /**
- * MeterSahi? — app.js
+ * MeterSahi? - app.js
  * Shared calculator logic for all city pages.
  * Requires cities.js to be loaded first.
  * CITY_SLUG must be defined in the page before this script loads.
+ *
+ * CHANGELOG:
+ * - Added vehicle-type toggle (Auto/Taxi). TARIFF is now resolved via
+ *   getTariff(), which reads CITY.taxiTariff when 'taxi' is selected.
+ *   Cities without a taxiTariff never show the toggle, so this is a
+ *   no-op everywhere except Mumbai and Pune for now.
+ * - Added toggleSection() for the two collapsible optional sections
+ *   (Ride details / What did the driver ask?), collapsed by default.
+ *   Underlying fields stay in the DOM either way, so nothing else
+ *   (autoSetRideTime, calculateFare, wait-override toggle) needed to
+ *   change - this is purely a visibility/CSS concern.
  */
 
 'use strict';
@@ -13,12 +24,48 @@ let directionsRenderer = null;
 let mapReady           = false;
 let lastRouteData      = null;
 
-const CITY   = CITIES[CITY_SLUG];
-const TARIFF = CITY.tariff;
+const CITY = CITIES[CITY_SLUG];
+
+// Vehicle type toggle: 'auto' (default) or 'taxi'. Cities without a
+// taxiTariff (most, for now) simply never show the toggle, so this
+// always resolves to CITY.tariff for them.
+let vehicleType = 'auto';
+function getTariff() {
+  return (vehicleType === 'taxi' && CITY.taxiTariff) ? CITY.taxiTariff : CITY.tariff;
+}
+
+window.setVehicleType = function (type) {
+  if (type === vehicleType) return;
+  if (type === 'taxi' && !CITY.taxiTariff) return; // guard: no taxi data for this city
+  vehicleType = type;
+
+  document.querySelectorAll('.vt-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.vehicle === type);
+  });
+
+  autoSetRideTime();
+  // Fare depends on the selected vehicle's tariff, so any previously
+  // shown result is now stale - ask for a fresh Calculate rather than
+  // risk showing a mismatched fare.
+  hideResults();
+};
 
 /* ════════════════════════════════════════════
    CITY DROPDOWN (BookMyShow style)
    ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   COLLAPSIBLE SECTIONS (Ride details / What did
+   the driver ask?) — collapsed by default so the
+   form doesn't feel like it demands every field.
+   ════════════════════════════════════════════ */
+window.toggleSection = function (id) {
+  const content = document.getElementById(id + '-content');
+  const chevron = document.getElementById(id + '-chevron');
+  if (!content) return;
+  const isOpen = content.classList.toggle('expanded');
+  if (chevron) chevron.classList.toggle('expanded', isOpen);
+};
+
 function buildCityDropdown() {
   const trigger  = document.getElementById('city-dropdown-trigger');
   const panel    = document.getElementById('city-dropdown-panel');
@@ -187,6 +234,7 @@ window.calculateFare = function () {
 };
 
 function handleRoutesResult(route, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
+  const TARIFF = getTariff();
   const distKm             = route.distanceMeters / 1000;
   // duration = traffic-aware, staticDuration = free-flow
   const durationTrafficSec = parseDurationSecs(route.duration);
@@ -240,6 +288,7 @@ function handleRoutesResult(route, isNight, luggage, actualFare, pickup, dropoff
    ════════════════════════════════════════════ */
 function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, isWaitOverridden,
   pickupName, dropName, pickupLat, pickupLng, dropLat, dropLng) {
+  const TARIFF = getTariff();
   const fare = computeFare(distKm, waitMin, isNight, luggage, TARIFF);
 
   document.getElementById('empty-state').style.display    = 'none';
@@ -511,7 +560,7 @@ function hideResults() {
 function autoSetRideTime() {
   const sel = document.getElementById('ride-time');
   if (!sel) return;
-  sel.value = isNightTime(TARIFF) ? 'night' : 'day';
+  sel.value = isNightTime(getTariff()) ? 'night' : 'day';
 }
 
 /* ════════════════════════════════════════════
