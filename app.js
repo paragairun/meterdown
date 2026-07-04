@@ -9,7 +9,6 @@
 
 /* ── State ── */
 let mapInstance        = null;
-let directionsService  = null;
 let directionsRenderer = null;
 let mapReady           = false;
 let lastRouteData      = null;
@@ -60,10 +59,16 @@ function buildCityDropdown() {
 
 /* ════════════════════════════════════════════
    GOOGLE MAPS INIT
+   Maps JS API is used only for:
+     - Map canvas rendering
+     - Places Autocomplete (address search)
+     - Drawing the route polyline
+   Route calculation now uses the Routes API
+   (REST POST) — not DirectionsService.
    ════════════════════════════════════════════ */
 window.initMap = function () {
   try {
-    directionsService = new google.maps.DirectionsService();
+    // DirectionsRenderer for drawing the polyline on the map
     directionsRenderer = new google.maps.DirectionsRenderer({
       suppressMarkers: false,
       preserveViewport: false,
@@ -81,6 +86,7 @@ window.initMap = function () {
     });
     directionsRenderer.setMap(mapInstance);
 
+    // Places Autocomplete — unchanged, still uses Maps JS API
     const b = CITY.acBounds;
     const bounds = new google.maps.LatLngBounds(
       new google.maps.LatLng(b.sw.lat, b.sw.lng),
@@ -100,6 +106,52 @@ window.initMap = function () {
 window.handleMapError = function () { mapReady = false; };
 
 /* ════════════════════════════════════════════
+   ROUTES API — REST call
+   Replaces the old DirectionsService.
+   Endpoint: routes.googleapis.com/directions/v2:computeRoutes
+   Field mask requests only what we need to
+   keep billing events at the Essentials tier.
+   ════════════════════════════════════════════ */
+const ROUTES_API_KEY = 'AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM';
+const ROUTES_ENDPOINT = 'https://routes.googleapis.com/directions/v2:computeRoutes';
+
+function parseDurationSecs(durationStr) {
+  // Routes API returns duration as "123s" string
+  if (!durationStr) return 0;
+  return parseInt(durationStr.replace('s', ''), 10) || 0;
+}
+
+function computeRoutesAPI(originAddress, destinationAddress) {
+  // departureTime must be RFC3339 UTC, current time
+  const departureTime = new Date().toISOString();
+  const cityName = CITY.name;
+
+  const body = {
+    origin:      { address: originAddress + (originAddress.toLowerCase().includes(cityName.toLowerCase()) ? '' : ', ' + cityName + ', India') },
+    destination: { address: destinationAddress + (destinationAddress.toLowerCase().includes(cityName.toLowerCase()) ? '' : ', ' + cityName + ', India') },
+    travelMode:  'DRIVE',
+    routingPreference: 'TRAFFIC_AWARE',
+    departureTime: departureTime,
+    computeAlternativeRoutes: false,
+    languageCode: 'en-IN',
+    units: 'METRIC',
+  };
+
+  return fetch(ROUTES_ENDPOINT, {
+    method:  'POST',
+    headers: {
+      'Content-Type':       'application/json',
+      'X-Goog-Api-Key':     ROUTES_API_KEY,
+      // Field mask — request only what we need
+      // staticDuration = free-flow, duration = traffic-aware
+      // Keeps billing at Essentials tier (no traffic-on-polyline surcharge)
+      'X-Goog-FieldMask':   'routes.distanceMeters,routes.duration,routes.staticDuration,routes.polyline.encodedPolyline,routes.legs.startLocation,routes.legs.endLocation',
+    },
+    body: JSON.stringify(body),
+  }).then(function(res) { return res.json(); });
+}
+
+/* ════════════════════════════════════════════
    FARE CALCULATION
    ════════════════════════════════════════════ */
 window.calculateFare = function () {
@@ -115,53 +167,70 @@ window.calculateFare = function () {
   setLoading(true);
   hideResults();
 
-  if (mapReady && directionsService) {
-    const cityName = CITY.name;
-    directionsService.route(
-      {
-        origin:      pickup  + (pickup.toLowerCase().includes(cityName.toLowerCase())  ? '' : `, ${cityName}`),
-        destination: dropoff + (dropoff.toLowerCase().includes(cityName.toLowerCase()) ? '' : `, ${cityName}`),
-        travelMode:  google.maps.TravelMode.DRIVING,
-        drivingOptions: { departureTime: new Date(), trafficModel: google.maps.TrafficModel.BEST_GUESS },
-      },
-      (result, status) => {
-        setLoading(false);
-        if (status === google.maps.DirectionsStatus.OK) {
-          handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride);
-        } else {
-          showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
-        }
+  computeRoutesAPI(pickup, dropoff)
+    .then(function(data) {
+      setLoading(false);
+      if (data.routes && data.routes.length > 0) {
+        handleRoutesResult(data.routes[0], isNight, luggage, actualFare, pickup, dropoff, waitOverride);
+      } else {
+        console.warn('Routes API returned no routes:', data);
+        showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
       }
-    );
-  } else {
-    setLoading(false);
-    showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
-  }
+    })
+    .catch(function(err) {
+      setLoading(false);
+      console.warn('Routes API error:', err);
+      showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
+    });
 };
 
-function handleDirectionsResult(result, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
-  const leg = result.routes[0].legs[0];
-  const distKm             = leg.distance.value / 1000;
-  const durationFreeSec    = leg.duration.value;
-  const durationTrafficSec = leg.duration_in_traffic ? leg.duration_in_traffic.value : durationFreeSec;
+function handleRoutesResult(route, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
+  const distKm             = route.distanceMeters / 1000;
+  // duration = traffic-aware, staticDuration = free-flow
+  const durationTrafficSec = parseDurationSecs(route.duration);
+  const durationFreeSec    = parseDurationSecs(route.staticDuration || route.duration);
   const totalMinutes       = durationTrafficSec / 60;
   const trafficDelaySec    = Math.max(0, durationTrafficSec - durationFreeSec);
   const estimatedWait      = (trafficDelaySec * TARIFF.STANDSTILL_FACTOR) / 60;
   const waitMinutes        = (waitOverride !== null && waitOverride !== undefined) ? waitOverride : estimatedWait;
   const isWaitOverridden   = (waitOverride !== null && waitOverride !== undefined);
 
-  // Extract coordinates for deep links
-  const pickupLat  = leg.start_location.lat();
-  const pickupLng  = leg.start_location.lng();
-  const dropLat    = leg.end_location.lat();
-  const dropLng    = leg.end_location.lng();
+  // Extract coordinates from legs for deep links
+  const leg        = route.legs && route.legs[0];
+  const pickupLat  = leg && leg.startLocation && leg.startLocation.latLng ? leg.startLocation.latLng.latitude  : '';
+  const pickupLng  = leg && leg.startLocation && leg.startLocation.latLng ? leg.startLocation.latLng.longitude : '';
+  const dropLat    = leg && leg.endLocation   && leg.endLocation.latLng   ? leg.endLocation.latLng.latitude    : '';
+  const dropLng    = leg && leg.endLocation   && leg.endLocation.latLng   ? leg.endLocation.latLng.longitude   : '';
 
   lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden };
   renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden,
     pickup, dropoff, pickupLat, pickupLng, dropLat, dropLng);
 
-  directionsRenderer.setDirections(result);
-  google.maps.event.trigger(mapInstance, 'resize');
+  // Draw route on map using the encoded polyline from the response
+  if (mapInstance && directionsRenderer && route.polyline && route.polyline.encodedPolyline) {
+    const decodedPath = google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline);
+    const bounds = new google.maps.LatLngBounds();
+    decodedPath.forEach(function(pt) { bounds.extend(pt); });
+
+    // Draw as a plain Polyline since we no longer use DirectionsResult
+    if (window._routePolyline) window._routePolyline.setMap(null);
+    window._routePolyline = new google.maps.Polyline({
+      path:          decodedPath,
+      strokeColor:   '#f59e0b',
+      strokeWeight:  4,
+      strokeOpacity: 0.85,
+      map:           mapInstance,
+    });
+
+    // Add start/end markers
+    if (window._routeMarkers) window._routeMarkers.forEach(function(m) { m.setMap(null); });
+    window._routeMarkers = [
+      new google.maps.Marker({ position: decodedPath[0],                       map: mapInstance }),
+      new google.maps.Marker({ position: decodedPath[decodedPath.length - 1],  map: mapInstance }),
+    ];
+
+    mapInstance.fitBounds(bounds, { padding: 40 });
+  }
 }
 
 /* ════════════════════════════════════════════
