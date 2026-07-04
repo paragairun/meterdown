@@ -111,6 +111,10 @@
     <!-- Input panel -->
     <section class="panel input-panel">
       <div class="panel-header"><span class="panel-step">1</span><h2>Your route</h2></div>
+      <div class="vehicle-toggle" id="vehicle-toggle" role="group" aria-label="Vehicle type">
+        <button type="button" class="vt-btn active" data-vehicle="auto" onclick="setVehicleType('auto')"><i class="ti ti-scooter"></i> Auto</button>
+        <button type="button" class="vt-btn" data-vehicle="taxi" onclick="setVehicleType('taxi')"><i class="ti ti-car"></i> Taxi</button>
+      </div>
       <div class="field-stack">
         <div class="field">
           <label for="pickup"><i class="ti ti-map-pin"></i> Pickup</label>
@@ -128,7 +132,11 @@
       </div>
 
       <div class="panel-divider"></div>
-      <div class="panel-header"><span class="panel-step">2</span><h2>Ride details</h2></div>
+      <div class="panel-header panel-header--collapsible panel-header--tint-amber" id="ride-details-header" onclick="toggleSection('ride-details')">
+        <span class="panel-step">2</span><h2>Ride details</h2><span class="optional-tag">optional</span>
+        <i class="ti ti-chevron-down panel-chevron" id="ride-details-chevron"></i>
+      </div>
+      <div class="collapsible-content" id="ride-details-content">
       <div class="options-grid">
         <div class="field">
           <label for="ride-time"><i class="ti ti-sun"></i> Time of ride</label>
@@ -170,8 +178,14 @@
         </div>
       </div>
 
+      </div><!-- /#ride-details-content -->
+
       <div class="panel-divider"></div>
-      <div class="panel-header"><span class="panel-step">3</span><h2>What did the driver ask? <span class="optional-tag">optional</span></h2></div>
+      <div class="panel-header panel-header--collapsible panel-header--tint-gray" id="driver-ask-header" onclick="toggleSection('driver-ask')">
+        <span class="panel-step">3</span><h2>What did the driver ask?</h2><span class="optional-tag">optional</span>
+        <i class="ti ti-chevron-down panel-chevron" id="driver-ask-chevron"></i>
+      </div>
+      <div class="collapsible-content" id="driver-ask-content">
       <div class="field actual-fare-field">
         <label for="actual-fare"><i class="ti ti-receipt"></i> Meter reading (₹)
           <span class="label-hint">Leave blank to just see the correct fare</span>
@@ -181,6 +195,7 @@
           <input id="actual-fare" type="number" min="0" placeholder="e.g. 85"/>
         </div>
       </div>
+      </div><!-- /#driver-ask-content -->
 
       <button id="calc-btn" class="btn-calculate" onclick="calculateFare()">
         <i class="ti ti-route"></i> Calculate correct fare
