@@ -122,8 +122,11 @@ function parseDurationSecs(durationStr) {
 }
 
 function computeRoutesAPI(originAddress, destinationAddress) {
-  // departureTime must be RFC3339 UTC, current time
-  const departureTime = new Date().toISOString();
+  // NOTE: departureTime intentionally omitted - Routes API defaults to
+  // "now" server-side. Setting it client-side risks it being resolved
+  // as a past timestamp by the time the request reaches Google's
+  // servers, which triggers a 400 INVALID_ARGUMENT ("Timestamp must
+  // be set to a future time.").
   const cityName = CITY.name;
 
   const body = {
@@ -131,7 +134,6 @@ function computeRoutesAPI(originAddress, destinationAddress) {
     destination: { address: destinationAddress + (destinationAddress.toLowerCase().includes(cityName.toLowerCase()) ? '' : ', ' + cityName + ', India') },
     travelMode:  'DRIVE',
     routingPreference: 'TRAFFIC_AWARE',
-    departureTime: departureTime,
     computeAlternativeRoutes: false,
     languageCode: 'en-IN',
     units: 'METRIC',
