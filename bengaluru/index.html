@@ -93,7 +93,7 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="container" data-nosnippet>
+    <div class="container">
       <h1 class="hero-heading">Bengaluru Auto Rickshaw Fare Calculator</h1>
       <p class="hero-sub">Enter your pickup and drop. We fetch the live route, calculate the correct fare per the <strong>official Karnataka tariff (1 Aug 2025)</strong>, and tell you if your meter is honest.</p>
       <div class="hero-chips">
@@ -374,10 +374,10 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <script>const CITY_SLUG = 'bengaluru';</script>
-  <script src="/ride-compare.js"></script>
   <script src="/cities.js"></script>
+  <script src="/ride-compare.js"></script>
   <script src="/app.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&callback=initMap" async defer onerror="handleMapError()"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places,geometry&callback=initMap" async defer onerror="handleMapError()"></script>
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZP9JS7LCFS"></script>
