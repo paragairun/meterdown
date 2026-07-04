@@ -38,12 +38,17 @@ const RIDE_PLATFORMS = {
     logo:      '🚗',
     cities: {
       mumbai:    { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Surge up to 1.5× at peak hours',
-                   taxi: { available: true, label: 'Uber Taxi', platformFee: 10, surge: 'Must follow RTO black-yellow taxi tariff (MMRTA order, Sept 2025)' } },
-      delhi:     { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Surge pricing applicable' },
+                   // Taxi-mode comparison uses Uber's own cab product (Uber Go),
+                   // not the RTO black-yellow taxi tariff - these are separate
+                   // pricing systems. cabBase/cabPerKm/cabMin are approximate
+                   // market rates, not officially published; app pricing is dynamic.
+                   taxi: { available: true, label: 'Uber Go', cabBase: 60, cabPerKm: 13, cabMin: 90, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
+      delhi:     { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Surge pricing applicable',
+                   taxi: { available: true, label: 'Uber Go', cabBase: 50, cabPerKm: 11, cabMin: 80, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       bengaluru: { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Surge pricing applicable' },
       hyderabad: { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Surge pricing applicable' },
       pune:      { available: true,  type: 'auto', label: 'Uber Auto',  platformFee: 8,   surge: 'Regulated fares from May 2025',
-                   taxi: { available: true, label: 'Uber Taxi', platformFee: 10, surge: 'Must follow RTO black-yellow taxi tariff (statewide Maharashtra order)' } },
+                   taxi: { available: true, label: 'Uber Go', cabBase: 55, cabPerKm: 12, cabMin: 85, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       kochi:     { available: true,  type: 'go',   label: 'Uber Go',    platformFee: 15,  surge: 'Surge pricing applicable',
                    // Uber Go (cab) — separate rate since it's not an auto
                    goPerKm: 16, goBase: 40, goMin: 65 },
@@ -64,12 +69,13 @@ const RIDE_PLATFORMS = {
     logo:      '🚕',
     cities: {
       mumbai:    { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply',
-                   taxi: { available: true, label: 'Ola Taxi', platformFee: 10, surge: 'Must follow RTO black-yellow taxi tariff (MMRTA order, Sept 2025)' } },
-      delhi:     { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply' },
+                   taxi: { available: true, label: 'Ola Mini', cabBase: 55, cabPerKm: 12, cabMin: 85, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
+      delhi:     { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply',
+                   taxi: { available: true, label: 'Ola Mini', cabBase: 48, cabPerKm: 10, cabMin: 75, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       bengaluru: { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply' },
       hyderabad: { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply' },
       pune:      { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Regulated fares from May 2025',
-                   taxi: { available: true, label: 'Ola Taxi', platformFee: 10, surge: 'Must follow RTO black-yellow taxi tariff (statewide Maharashtra order)' } },
+                   taxi: { available: true, label: 'Ola Mini', cabBase: 50, cabPerKm: 11, cabMin: 80, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       kochi:     { available: true,  type: 'mini', label: 'Ola Mini',   platformFee: 15,  surge: 'Dynamic pricing may apply',
                    goPerKm: 15, goBase: 40, goMin: 60 },
       kolkata:   { available: true,  type: 'auto', label: 'Ola Auto',   platformFee: 8,   surge: 'Dynamic pricing may apply' },
@@ -89,12 +95,13 @@ const RIDE_PLATFORMS = {
     logo:      '🛵',
     cities: {
       mumbai:    { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply',
-                   taxi: { available: true, label: 'Rapido Taxi', platformFee: 7, surge: 'Must follow RTO black-yellow taxi tariff (MMRTA order, Sept 2025)' } },
-      delhi:     { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply' },
+                   taxi: { available: true, label: 'Rapido Cab', cabBase: 50, cabPerKm: 11, cabMin: 80, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
+      delhi:     { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply',
+                   taxi: { available: true, label: 'Rapido Cab', cabBase: 45, cabPerKm: 9,  cabMin: 70, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       bengaluru: { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply' },
       hyderabad: { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply' },
       pune:      { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Regulated fares from May 2025',
-                   taxi: { available: true, label: 'Rapido Taxi', platformFee: 7, surge: 'Must follow RTO black-yellow taxi tariff (statewide Maharashtra order)' } },
+                   taxi: { available: true, label: 'Rapido Cab', cabBase: 48, cabPerKm: 10, cabMin: 75, platformFee: 0, surge: 'Dynamic pricing may apply - not tied to the taxi meter' } },
       kochi:     { available: false, type: 'auto', label: 'Rapido Auto', platformFee: 0,  surge: '' },
       kolkata:   { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply' },
       chennai:   { available: true,  type: 'auto', label: 'Rapido Auto', platformFee: 5,  surge: 'Dynamic pricing may apply' },
@@ -117,24 +124,32 @@ function estimateRideFare(platform, citySlug, distKm, waitMin, isNight, vehicleT
   const cityBase = platform.cities[citySlug];
   if (!cityBase) return null;
 
-  // In taxi mode, use the platform's `.taxi` sub-config if present;
-  // if a platform has no taxi variant for this city, it's simply
-  // omitted from the taxi-mode comparison (not shown as auto).
-  const city = (vehicleType === 'taxi') ? cityBase.taxi : cityBase;
-  if (!city || !city.available) return null;
+  if (vehicleType === 'taxi') {
+    // Taxi-mode: compare against the platform's own cab product
+    // (Uber Go / Ola Mini / Rapido Cab), not the RTO black-yellow
+    // taxi tariff - those are different pricing systems and
+    // conflating them would be comparing kaali-peeli to itself.
+    const c = cityBase.taxi;
+    if (!c || !c.available) return null;
+    const raw  = c.cabBase + (distKm * c.cabPerKm);
+    const fare = Math.max(c.cabMin, Math.round(raw + (c.platformFee || 0)));
+    return { fare, city: c, platform };
+  }
 
-  const cityData = CITIES[citySlug];
-  const tariff = cityData && (vehicleType === 'taxi' ? cityData.taxiTariff : cityData.tariff);
+  const city = cityBase;
+  if (!city.available) return null;
+
+  const tariff = CITIES[citySlug] && CITIES[citySlug].tariff;
   if (!tariff) return null;
 
   let fare;
 
-  if ((cityBase.type === 'go' || cityBase.type === 'mini') && cityBase.goPerKm) {
+  if ((city.type === 'go' || city.type === 'mini') && city.goPerKm) {
     // Cab fallback (not meter-regulated) — simple formula
-    const raw = cityBase.goBase + (distKm * cityBase.goPerKm);
-    fare = Math.max(cityBase.goMin, Math.round(raw));
+    const raw = city.goBase + (distKm * city.goPerKm);
+    fare = Math.max(city.goMin, Math.round(raw));
   } else {
-    // Auto/Taxi - same RTO formula as the meter, + platform fee
+    // Auto — same RTO formula as the meter, + platform fee
     const result = computeFare(distKm, waitMin, isNight, 0, tariff);
     fare = result.subtotal;
   }
@@ -220,7 +235,10 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
     const c        = est.city;
     const isWinner = !autoIsChest && i === 0;
     const deepLink = p.deepLink(pickupLat || '', pickupLng || '', pickupName, dropLat || '', dropLng || '', dropName);
-    const isCab    = c.type === 'mini' || c.type === 'go';
+    const isCab    = vt === 'taxi' || c.type === 'mini' || c.type === 'go';
+    const fareNote = vt === 'taxi'
+      ? 'Estimated cab fare (base + per-km) · not linked to the taxi meter'
+      : `RTO meter rate + ₹${c.platformFee} platform fee · excl. surge`;
 
     cardsHTML += `
     <div class="rc-card${isWinner ? ' rc-card--winner' : ''}">
@@ -228,12 +246,12 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
         <span class="rc-logo">${p.logo}</span>
         <div>
           <div class="rc-brand">${p.brand} <span class="rc-badge" style="background:${p.color};color:${p.textColor||'#fff'}">${c.label}</span></div>
-          <div class="rc-type">App-based · ${isCab ? 'Cab (auto unavailable)' : vehicleLabel}</div>
+          <div class="rc-type">App-based · ${isCab ? 'Cab' : vehicleLabel}</div>
         </div>
         ${isWinner ? '<span class="rc-cheapest-tag">Cheapest</span>' : ''}
       </div>
       <div class="rc-fare">₹${est.fare}</div>
-      <div class="rc-fare-note">RTO meter rate + ₹${c.platformFee} platform fee · excl. surge</div>
+      <div class="rc-fare-note">${fareNote}</div>
       <div class="rc-surge-note"><i class="ti ti-alert-triangle"></i> ${c.surge}</div>
       <a href="${deepLink}" target="_blank" rel="noopener" class="rc-open-btn" style="background:${p.color};color:${p.textColor||'#fff'}">
         Open ${p.brand} <i class="ti ti-external-link"></i>
@@ -241,19 +259,30 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
     </div>`;
   });
 
+  const subtitle = vt === 'taxi'
+    ? `App fares here are Uber/Ola/Rapido's own cab products (Uber Go, Ola Mini, Rapido Cab) - separate pricing from the taxi meter, not RTO-linked.`
+    : `App fares use the same RTO meter rate as the ${vehicleLabel.toLowerCase()}, plus platform fee. Excludes surge pricing.`;
+
+  const disclaimer = vt === 'taxi'
+    ? `Uber Go, Ola Mini and Rapido Cab are the platforms' own cab products with independently set pricing - not
+       linked to the RTO black-yellow taxi tariff. Figures shown are approximate market rates (base fare + per-km),
+       not officially published. Surge pricing, tolls and promotions are not included. Always check the app for the
+       live fare before booking.`
+    : `Uber, Ola and Rapido follow the official RTO tariff for this city.
+       App fare shown = correct meter fare + platform convenience fee. Surge pricing, tolls and
+       promotions are not included. Always check the app for the live fare before booking.
+       Rates last verified June 2025.`;
+
   section.innerHTML = `
     <div class="rc-header">
       <h2 class="rc-title"><i class="ti ti-arrows-exchange"></i> Should you take a ${vehicleLabel.toLowerCase()} or book a ride?</h2>
-      <p class="rc-subtitle">App fares use the same RTO meter rate as the ${vehicleLabel.toLowerCase()}, plus platform fee. Excludes surge pricing.</p>
+      <p class="rc-subtitle">${subtitle}</p>
     </div>
     ${recHTML}
     <div class="rc-cards">${cardsHTML}</div>
     <p class="rc-disclaimer">
       <i class="ti ti-info-circle"></i>
-      Uber, Ola and Rapido follow the official RTO tariff for this city.
-      App fare shown = correct meter fare + platform convenience fee. Surge pricing, tolls and
-      promotions are not included. Always check the app for the live fare before booking.
-      Rates last verified June 2025.
+      ${disclaimer}
     </p>`;
 
   section.style.display = 'block';

@@ -122,6 +122,22 @@ const CITIES = {
       TOLERANCE:         5,
       STANDSTILL_FACTOR: 0.90,
     },
+    // Black & Yellow Taxi (non-AC), Delhi Transport Dept notification
+    // dated 9 Jan 2023 - still the current listed rate on
+    // transport.delhi.gov.in as of this writing.
+    taxiTariffDate: '9 Jan 2023',
+    taxiTariff: {
+      MIN_FARE:          40,
+      MIN_KM:            1,
+      RATE_PER_KM:       17,
+      WAIT_RATE_PER_MIN: 1,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       23,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 15,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
     rtoContact: [
       { label: 'STA Delhi', phone: '011-23370004', email: '' },
     ],
