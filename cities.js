@@ -240,6 +240,29 @@ const CITIES = {
       TOLERANCE:         5,
       STANDSTILL_FACTOR: 0.90,
     },
+    // Yellow Taxi (metered). CAUTION - lower confidence than Mumbai/
+    // Pune/Delhi: West Bengal's Transport Dept has NOT revised yellow
+    // taxi fares since 2016 (confirmed via a Jan 2025 PTI news report
+    // quoting a taxi union leader), and no clean, fetchable official
+    // notification PDF could be found to cite directly (transport.wb.gov.in
+    // blocks automated access). These figures are compiled from
+    // multiple secondary sources describing the post-2018-recalibration
+    // meter reading, not a single authoritative document. If you have
+    // the actual WB govt notification, send it and this should be
+    // corrected/confirmed against it.
+    taxiTariffDate: '~2016 (unrevised since, per Jan 2025 news report) - unconfirmed against original notification',
+    taxiTariff: {
+      MIN_FARE:          30,
+      MIN_KM:            2,
+      RATE_PER_KM:       15,
+      WAIT_RATE_PER_MIN: 1,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       22,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 5,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
     rtoContact: [
       { label: 'WB Transport Dept', phone: '033-22143053', email: '' },
     ],
@@ -311,9 +334,57 @@ const CITY_LIST = [
    ════════════════════════════════════════════ */
 
 var GEO_CITY_MAP = {
-  'mumbai':       'mumbai',
-  'navi mumbai':  'mumbai',
-  'thane':        'mumbai',
+  // Mumbai + suburbs. Maharashtra has two covered cities (Mumbai and
+  // Pune), so - unlike every other state below - it can't be resolved
+  // by region name alone. IP geolocation frequently returns a specific
+  // suburb/locality rather than "Mumbai" itself, so this list needs to
+  // be broad rather than just the umbrella city name.
+  'mumbai':        'mumbai',
+  'navi mumbai':   'mumbai',
+  'thane':         'mumbai',
+  'borivali':      'mumbai',
+  'dahisar':       'mumbai',
+  'kandivali':     'mumbai',
+  'malad':         'mumbai',
+  'goregaon':      'mumbai',
+  'jogeshwari':    'mumbai',
+  'andheri':       'mumbai',
+  'vile parle':    'mumbai',
+  'santacruz':     'mumbai',
+  'khar':          'mumbai',
+  'bandra':        'mumbai',
+  'juhu':          'mumbai',
+  'versova':       'mumbai',
+  'mira road':     'mumbai',
+  'mira bhayandar':'mumbai',
+  'bhayandar':     'mumbai',
+  'vasai':         'mumbai',
+  'virar':         'mumbai',
+  'nalasopara':    'mumbai',
+  'kalyan':        'mumbai',
+  'dombivli':      'mumbai',
+  'ambernath':     'mumbai',
+  'ulhasnagar':    'mumbai',
+  'badlapur':      'mumbai',
+  'mulund':        'mumbai',
+  'bhandup':       'mumbai',
+  'vikhroli':      'mumbai',
+  'kanjurmarg':    'mumbai',
+  'ghatkopar':     'mumbai',
+  'chembur':       'mumbai',
+  'powai':         'mumbai',
+  'kurla':         'mumbai',
+  'sion':          'mumbai',
+  'dadar':         'mumbai',
+  'wadala':        'mumbai',
+  'parel':         'mumbai',
+  'worli':         'mumbai',
+  'mahim':         'mumbai',
+  'lower parel':   'mumbai',
+  'colaba':        'mumbai',
+  'fort':          'mumbai',
+  'churchgate':    'mumbai',
+
   'delhi':        'delhi',
   'new delhi':    'delhi',
   'noida':        'delhi',
@@ -325,8 +396,27 @@ var GEO_CITY_MAP = {
   'bangalore':    'bengaluru',
   'hyderabad':    'hyderabad',
   'secunderabad': 'hyderabad',
-  'pune':         'pune',
-  'pimpri':       'pune',
+
+  // Pune + suburbs (same reasoning as Mumbai above)
+  'pune':          'pune',
+  'pimpri':        'pune',
+  'chinchwad':     'pune',
+  'hinjewadi':     'pune',
+  'wakad':         'pune',
+  'baner':         'pune',
+  'aundh':         'pune',
+  'kothrud':       'pune',
+  'hadapsar':      'pune',
+  'viman nagar':   'pune',
+  'kharadi':       'pune',
+  'magarpatta':    'pune',
+  'wagholi':       'pune',
+  'nigdi':         'pune',
+  'akurdi':        'pune',
+  'katraj':        'pune',
+  'warje':         'pune',
+  'shivajinagar':  'pune',
+
   'kochi':        'kochi',
   'ernakulam':    'kochi',
   'thrissur':     'kochi',
@@ -336,11 +426,29 @@ var GEO_CITY_MAP = {
   'ahmedabad':    'ahmedabad',
 };
 
-function cityFromString(str) {
-  if (!str) return null;
-  var lower = str.toLowerCase();
+// Fallback for states where we cover exactly one city - safe to use
+// region alone since there's no ambiguity. (Maharashtra is excluded:
+// it has two covered cities, Mumbai and Pune, so it must be resolved
+// via GEO_CITY_MAP above instead.)
+var GEO_REGION_MAP = {
+  'delhi':          'delhi',
+  'nct of delhi':   'delhi',
+  'karnataka':      'bengaluru',
+  'telangana':      'hyderabad',
+  'kerala':         'kochi',
+  'west bengal':    'kolkata',
+  'tamil nadu':     'chennai',
+  'gujarat':        'ahmedabad',
+};
+
+function cityFromString(cityStr, regionStr) {
+  var lowerCity = (cityStr || '').toLowerCase();
   for (var key in GEO_CITY_MAP) {
-    if (lower.indexOf(key) !== -1) return GEO_CITY_MAP[key];
+    if (lowerCity.indexOf(key) !== -1) return GEO_CITY_MAP[key];
+  }
+  var lowerRegion = (regionStr || '').toLowerCase();
+  for (var rkey in GEO_REGION_MAP) {
+    if (lowerRegion.indexOf(rkey) !== -1) return GEO_REGION_MAP[rkey];
   }
   return null;
 }
@@ -361,8 +469,7 @@ function detectCityAndRedirect() {
       done = true;
       clearTimeout(safetyTimer);
       // ipapi.co returns city, region fields
-      var candidate = (data.city || '') + ' ' + (data.region || '');
-      var slug = cityFromString(candidate);
+      var slug = cityFromString(data.city, data.region);
       if (slug) {
         window.location.href = '/' + slug + '/';
       } else {
