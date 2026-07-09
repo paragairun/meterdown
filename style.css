@@ -35,7 +35,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; scroll-behavior: smooth; }
+html { font-size: 16px; scroll-behavior: smooth; overflow-x: hidden; }
 body { font-family: var(--font-ui); background: var(--surface-2); color: var(--text-primary); line-height: 1.6; }
 a { color: var(--saffron-dk); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -552,3 +552,80 @@ input, select { font-family: var(--font-ui); }
   gap: 5px;
 }
 .rc-disclaimer .ti { font-size: 13px; flex-shrink: 0; margin-top: 1px; color: var(--saffron-dk); }
+
+/* ─────────────────────────────────────────────
+   MOBILE RESPONSIVE FIXES
+   Root causes fixed:
+   1. Header row (brand + tariff badge + city dropdown
+      trigger) had no wrap/shrink handling — on narrow
+      screens the combined width exceeded the viewport,
+      causing page-wide horizontal scroll.
+   2. City dropdown panel used a fixed 320px width with
+      absolute positioning anchored to the trigger button —
+      on screens narrower than ~360px this pushed the panel
+      partly off-screen / got clipped.
+   3. Hero feature chips had no small-screen sizing, so on
+      very narrow phones they sat too large and contributed
+      to the same overflow.
+───────────────────────────────────────────── */
+
+/* ── Header: reclaim space on tablets/large phones ── */
+@media (max-width: 640px) {
+  .tariff-badge { display: none; }               /* "West Bengal tariff · ..." pill — not essential on mobile */
+  .brand-sub    { display: none; }                /* "Auto Fare Checker" tagline under logo */
+  .header-inner { gap: 8px; }
+  .container    { padding: 0 14px; }              /* reclaim a few px of margin on narrow screens */
+}
+
+/* ── Header: further tighten on small phones ── */
+@media (max-width: 400px) {
+  .brand-name { font-size: 15px; }
+  .brand-icon { font-size: 20px; }
+  .city-dropdown-trigger {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+}
+
+/* ── City dropdown panel: fixed positioning on mobile ──
+   position:fixed with left/right insets guarantees the panel
+   always fits within the viewport regardless of where the
+   trigger button sits, sidestepping the anchor-math issue
+   that caused clipping. */
+@media (max-width: 640px) {
+  .city-dropdown-panel {
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+  }
+  #city-dropdown-grid {
+    max-height: 50vh;
+  }
+}
+
+/* ── Hero feature chips: tighter sizing on small screens ── */
+@media (max-width: 480px) {
+  .hero-chips { gap: 6px; }
+  .hero-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    gap: 4px;
+  }
+  .hero-chip .ti { font-size: 12px; }
+  .hero-heading { font-size: 19px; }
+  .hero-sub { font-size: 13px; }
+}
+
+/* ── Report-vehicle number plate row: prevent cramped overflow ── */
+@media (max-width: 400px) {
+  .vn-group { min-width: 60px; max-width: 90px; }
+  .vehicle-number-row { gap: 4px; }
+}
+
+/* ── General overflow safety net ──
+   Ensures no single element (long unbroken text, wide table,
+   etc.) can force the page wider than the viewport. */
+img, svg, table, .panel, .container { max-width: 100%; }
