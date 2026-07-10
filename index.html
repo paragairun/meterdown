@@ -8,7 +8,6 @@
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-P4SMHLKF');</script>
   <!-- End Google Tag Manager -->
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -25,7 +24,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+  <!-- Tabler icons CDN removed here - this page uses emoji (🛺🏙️🕌 etc.),
+       not ti- icon classes, so the full icon font was pure render-blocking
+       dead weight (PageSpeed flagged ~33 KiB unused CSS from this). Still
+       loaded normally on city pages, which do use ti- icons. -->
   <style>
     *{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
     html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -103,7 +105,7 @@
     </div>
   </div>
 
-  <script src="/cities.js"></script>
+  <script src="/geo-redirect.js"></script>
   <script>
     // IP-based detection — no permission needed, works on all browsers
     if (document.readyState === 'loading') {
