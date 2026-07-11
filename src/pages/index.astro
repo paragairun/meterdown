@@ -1,8 +1,19 @@
+---
+import citiesData from '../data/cities.json';
+import cityEmoji from '../data/city-emoji.json';
+
+const cityList = Object.keys(citiesData).map((slug) => ({
+  slug,
+  name: (citiesData as any)[slug].name,
+  emoji: (cityEmoji as any)[slug] || '\ud83d\udccd',
+}));
+const cityCount = cityList.length;
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -18,16 +29,16 @@
   <link rel="canonical" href="https://metersahi.in/" />
   <meta property="og:url" content="https://metersahi.in/" />
   <meta property="og:title" content="MeterSahi? — Taxi & Auto Rickshaw Fare Checker" />
-  <meta property="og:description" content="Google maps based meter fare calculator for 9 Indian cities. Instantly know if your auto is overcharging you." />
+  <meta property="og:description" content={`Google maps based meter fare calculator for ${cityCount} Indian cities. Instantly know if your auto is overcharging you.`} />
   <meta name="theme-color" content="#1a1a1a" />
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <!-- Tabler icons CDN removed here - this page uses emoji (🛺🏙️🕌 etc.),
-       not ti- icon classes, so the full icon font was pure render-blocking
-       dead weight (PageSpeed flagged ~33 KiB unused CSS from this). Still
-       loaded normally on city pages, which do use ti- icons. -->
+  <!-- Tabler icons intentionally omitted: this page uses emoji only, confirmed
+       zero ti- classes used. Full icon font was pure render-blocking dead
+       weight here (PageSpeed flagged ~33 KiB unused CSS). Still loaded
+       normally on city pages, which do use ti- icons. -->
   <style>
     *{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
     html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -77,10 +88,9 @@
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
   <div style="text-align:center;width:100%;max-width:440px">
     <div class="logo">🛺 MeterSahi?</div>
-    <div class="tagline">Taxi & Auto rickshaw fare checker · 9 Indian cities</div>
+    <div class="tagline">Taxi & Auto rickshaw fare checker · {cityCount} Indian cities</div>
 
     <div class="geo-spinner" id="geo-spinner">
       <div class="spinner-ring"></div>
@@ -91,23 +101,18 @@
       <h2>Select your city</h2>
       <p>Pick your city to check taxi and auto fares</p>
       <div class="city-grid">
-        <a class="city-btn" href="/mumbai/"><span class="city-emoji">🏙️</span>Mumbai</a>
-        <a class="city-btn" href="/delhi/"><span class="city-emoji">🕌</span>New Delhi</a>
-        <a class="city-btn" href="/bengaluru/"><span class="city-emoji">🌿</span>Bengaluru</a>
-        <a class="city-btn" href="/hyderabad/"><span class="city-emoji">💎</span>Hyderabad</a>
-        <a class="city-btn" href="/pune/"><span class="city-emoji">🎓</span>Pune</a>
-        <a class="city-btn" href="/kochi/"><span class="city-emoji">🌴</span>Kochi</a>
-        <a class="city-btn" href="/kolkata/"><span class="city-emoji">🌸</span>Kolkata</a>
-        <a class="city-btn" href="/chennai/"><span class="city-emoji">🎭</span>Chennai</a>
-        <a class="city-btn" href="/ahmedabad/"><span class="city-emoji">🏛️</span>Ahmedabad</a>
+        {cityList.map((c) => (
+          <a class="city-btn" href={`/${c.slug}/`}><span class="city-emoji">{c.emoji}</span>{c.name}</a>
+        ))}
       </div>
       <p class="permission-note">Allow location access when prompted to auto-detect your city next time.</p>
     </div>
   </div>
 
-  <script src="/geo-redirect.js"></script>
-  <script>
-    // IP-based detection — no permission needed, works on all browsers
+  <!-- Lightweight redirect-only script (not the full cities.js) - the
+       homepage only needs city detection, not tariff data for every city. -->
+  <script is:inline src="/geo-redirect.js"></script>
+  <script is:inline>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() { detectCityAndRedirect(); });
     } else {

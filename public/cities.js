@@ -61,6 +61,7 @@ const CITIES = {
       { label: 'RTO Mumbai Central', phone: '9076201010', email: 'mh01taxicomplaint@gmail.com' },
       { label: 'RTO Mumbai West',    phone: '9920240202', email: 'mh02.autotaxicomplaint@gmail.com' },
     ],
+    onlineComplaint: { label: 'Online complaint', value: 'Aaple Sarkar / State portal', hint: 'File via state transport website' },
     helpline: '1800-233-1922',
   },
 
@@ -100,6 +101,7 @@ const CITIES = {
     rtoContact: [
       { label: 'RTO Pune', phone: '020-26051400', email: '' },
     ],
+    onlineComplaint: { label: 'Online complaint', value: 'Aaple Sarkar / State portal', hint: 'File via state transport website' },
     helpline: '1800-233-1922',
   },
 

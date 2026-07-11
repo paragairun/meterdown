@@ -1,9 +1,104 @@
+---
+// MeterSahi? - CityLayout.astro
+// Single shared template for every city page. All tariff numbers,
+// RTO contacts, and dates are derived from cities.json (the same
+// data app.js/cities.js use at runtime) - never hand-typed here.
+// Changing a shared section (GTM, CSP, cross-promo, collapsible UI)
+// means editing this ONE file, not every city page.
+
+interface RtoContact {
+  label: string;
+  phone: string;
+  email: string;
+}
+
+interface Tariff {
+  MIN_FARE: number;
+  MIN_KM: number;
+  RATE_PER_KM: number;
+  WAIT_RATE_PER_MIN: number;
+  NIGHT_MULTIPLIER: number;
+  NIGHT_START: number;
+  NIGHT_END: number;
+  LUGGAGE_PER_PIECE: number;
+  TOLERANCE: number;
+}
+
+interface City {
+  slug: string;
+  name: string;
+  state: string;
+  tariffDate: string;
+  tariff: Tariff;
+  taxiTariffDate?: string;
+  taxiTariff?: Tariff;
+  rtoContact: RtoContact[];
+  onlineComplaint?: { label: string; value: string; hint: string };
+  helpline: string;
+}
+
+interface Props {
+  city: City;
+}
+
+const { city } = Astro.props;
+const hasTaxi = !!city.taxiTariff;
+const T = city.tariff;
+
+const nightPct = Math.round((T.NIGHT_MULTIPLIER - 1) * 100);
+function to12Hour(hour24: number): string {
+  const period = hour24 < 12 ? 'AM' : 'PM';
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return `${hour12} ${period}`;
+}
+const nightWindow = `${to12Hour(T.NIGHT_START)} \u2013 ${to12Hour(T.NIGHT_END)}`;
+const perKmDisplay = T.RATE_PER_KM.toFixed(2);
+const waitDisplay = T.WAIT_RATE_PER_MIN.toFixed(2);
+
+const title = `${city.name} Auto Rickshaw Fare Calculator — Check Meter Tampering | MeterSahi?`;
+const ogTitle = `${city.name} Auto Fare Calculator — Is Your Meter Tampered? | MeterSahi?`;
+const description = "Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff.";
+const keywords = `${city.name.toLowerCase()} auto fare calculator, autorickshaw fare ${city.name.toLowerCase()}, auto meter tampered ${city.name.toLowerCase()}, rickshaw fare check ${city.name.toLowerCase()}, meter sahi, auto fare per km ${city.name.toLowerCase()}`;
+const canonical = `https://metersahi.in/${city.slug}/`;
+
+const webAppJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: `MeterSahi? — ${city.name} Auto Rickshaw Fare Calculator`,
+  url: canonical,
+  description: `Free calculator to check correct ${city.name} auto fare per ${city.state} tariff (${city.tariffDate}). Detects tampered meters.`,
+  applicationCategory: "UtilityApplication",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: `What is the ${city.name} auto rickshaw fare per km in ${city.tariffDate}?`,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: `The ${city.name} auto fare is ₹${perKmDisplay}/km, with a minimum fare of ₹${T.MIN_FARE} per official ${city.state} tariff as of ${city.tariffDate}.`,
+      },
+    },
+    {
+      "@type": "Question",
+      name: `How do I know if my ${city.name} auto meter is tampered?`,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: `Use MeterSahi? — enter your pickup and drop and the fare charged. If the driver charges more than ₹${T.TOLERANCE} above the calculated correct fare, tampering is likely.`,
+      },
+    },
+  ],
+};
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Scoped CSP - tested and confirmed working on Ahmedabad (staging
-       city) before rollout. unsafe-inline kept in script-src deliberately;
-       see Ahmedabad staging notes for reasoning. -->
+  <!-- Scoped CSP - tested on Ahmedabad (staging city) before sitewide rollout -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com https://www.google-analytics.com;
@@ -17,7 +112,7 @@
     frame-ancestors 'none';
   "/>
   <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -25,49 +120,21 @@
   <!-- End Google Tag Manager -->
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kochi Auto Rickshaw Fare Calculator — Check Meter Tampering | MeterSahi?</title>
-  <meta name="description" content="Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff."/>
-  <meta name="keywords" content="kochi auto fare calculator, autorickshaw fare kochi, auto meter tampered kochi, rickshaw fare check kochi, kochi auto fare May 2022, meter sahi, auto fare per km kochi"/>
-  <link rel="canonical" href="https://metersahi.in/kochi/"/>
+  <title>{title}</title>
+  <meta name="description" content={description}/>
+  <meta name="keywords" content={keywords}/>
+  <link rel="canonical" href={canonical}/>
   <meta property="og:type" content="website"/>
-  <meta property="og:url" content="https://metersahi.in/kochi/"/>
-  <meta property="og:title" content="Kochi Auto Fare Calculator — Is Your Meter Tampered? | MeterSahi?"/>
-  <meta property="og:description" content="Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff."/>
+  <meta property="og:url" content={canonical}/>
+  <meta property="og:title" content={ogTitle}/>
+  <meta property="og:description" content={description}/>
   <meta property="og:site_name" content="MeterSahi?"/>
   <meta name="geo.region" content="IN"/>
-  <meta name="geo.placename" content="Kochi, Kerala, India"/>
+  <meta name="geo.placename" content={`${city.name}, ${city.state}, India`}/>
   <meta name="theme-color" content="#1a1a1a"/>
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "MeterSahi? — Kochi Auto Rickshaw Fare Calculator",
-    "url": "https://metersahi.in/kochi/",
-    "description": "Free calculator to check correct Kochi auto fare per Kerala tariff (May 2022). Detects tampered meters.",
-    "applicationCategory": "UtilityApplication",
-    "offers": {"@type":"Offer","price":"0","priceCurrency":"INR"}
-  }
-  </script>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is the Kochi auto rickshaw fare per km in May 2022?",
-        "acceptedAnswer": {"@type":"Answer","text":"The Kochi auto fare is ₹15/km, with a minimum fare of ₹30 per official Kerala tariff as of May 2022."}
-      },
-      {
-        "@type": "Question",
-        "name": "How do I know if my Kochi auto meter is tampered?",
-        "acceptedAnswer": {"@type":"Answer","text":"Use MeterSahi? — enter your pickup and drop and the fare charged. If the driver charges more than ₹5 above the calculated correct fare, tampering is likely."}
-      }
-    ]
-  }
-  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -76,6 +143,8 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <!-- HEADER -->
   <header class="site-header">
@@ -91,13 +160,12 @@
         <div class="header-right">
           <div class="tariff-badge">
             <i class="ti ti-file-certificate"></i>
-            Kerala tariff · May 2022
+            {city.state} tariff · {city.tariffDate}
           </div>
-          <!-- City Dropdown -->
           <div class="city-dropdown">
             <button class="city-dropdown-trigger" id="city-dropdown-trigger">
               <i class="ti ti-map-pin"></i>
-              Kochi
+              {city.name}
               <i class="ti ti-chevron-down chevron"></i>
             </button>
             <div class="city-dropdown-panel" id="city-dropdown-panel">
@@ -115,14 +183,14 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="container" data-nosnippet>
-      <h1 class="hero-heading">Kochi Auto Rickshaw Fare Calculator</h1>
+    <div class="container">
+      <h1 class="hero-heading">{city.name} Auto Rickshaw Fare Calculator</h1>
       <p class="hero-sub">Google maps based fare calculator. Enter your route,<strong> AI calculates distance and waiting time.</strong> Instantly displays correct fare as per official tariff.</p>
       <div class="hero-chips">
         <span class="hero-chip"><i class="ti ti-map-pin"></i> Live Google Maps routing</span>
         <span class="hero-chip"><i class="ti ti-shield-check"></i> Detects tampered meters</span>
         <span class="hero-chip"><i class="ti ti-clock"></i> Wait time calculated</span>
-        <span class="hero-chip"><i class="ti ti-moon"></i> Night surcharge +50%</span>
+        <span class="hero-chip"><i class="ti ti-moon"></i> Night surcharge +{nightPct}%</span>
       </div>
     </div>
   </section>
@@ -133,6 +201,12 @@
     <!-- Input panel -->
     <section class="panel input-panel">
       <div class="panel-header"><span class="panel-step">1</span><h2>Your route</h2></div>
+      {hasTaxi && (
+        <div class="vehicle-toggle" id="vehicle-toggle" role="group" aria-label="Vehicle type">
+          <button type="button" class="vt-btn active" data-vehicle="auto" onclick="setVehicleType('auto')"><i class="ti ti-scooter"></i> Auto</button>
+          <button type="button" class="vt-btn" data-vehicle="taxi" onclick="setVehicleType('taxi')"><i class="ti ti-car"></i> Taxi</button>
+        </div>
+      )}
       <div class="field-stack">
         <div class="field">
           <label for="pickup"><i class="ti ti-map-pin"></i> Pickup</label>
@@ -159,15 +233,15 @@
         <div class="field">
           <label for="ride-time"><i class="ti ti-sun"></i> Time of ride</label>
           <select id="ride-time">
-            <option value="day">Day (5 AM to 10 PM)</option>
-            <option value="night">Night — 10 PM – 5 AM (+50%)</option>
+            <option value="day">Day (5 AM to 12 AM)</option>
+            <option value="night">Night — {nightWindow} (+{nightPct}%)</option>
           </select>
         </div>
         <div class="field">
           <label for="luggage"><i class="ti ti-luggage"></i> Extra luggage</label>
           <select id="luggage">
             <option value="0">None</option>
-            <option value='0' disabled>Not applicable</option>
+            <option value='1'>1 piece</option><option value='2'>2 pieces</option><option value='3'>3 pieces</option>
           </select>
         </div>
       </div>
@@ -231,12 +305,12 @@
         <p class="empty-title">Your route will appear here</p>
         <p class="empty-body">Enter pickup and drop-off, then hit Calculate to see the map and correct fare.</p>
         <div class="fare-card-preview">
-          <p class="fare-card-title">Kochi auto tariff — May 2022</p>
+          <p class="fare-card-title">{city.name} auto tariff — {city.tariffDate}</p>
           <div class="fare-card-grid">
-            <div class="fare-card-item"><span class="fc-label">Min. fare</span><span class="fc-value">₹30</span></div>
-            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">₹15.0</span></div>
-            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">₹1.5</span></div>
-            <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">50%</span></div>
+            <div class="fare-card-item"><span class="fc-label">Min. fare</span><span class="fc-value">₹{T.MIN_FARE}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">₹{perKmDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">₹{waitDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{nightPct}%</span></div>
           </div>
         </div>
       </div>
@@ -287,19 +361,22 @@
       </div>
     </section>
   </main>
+
   <!-- CROSS-PROMO -->
   <section class="cross-promo-section">
     <div class="container">
       <p class="cross-promo-label">Also from the maker of MeterSahi?</p>
       <div class="cross-promo-grid">
-        <a href="https://karaokeparty.in" target="_blank" rel="noopener" class="promo-card">
+        <a href="https://karaokeparty.in" target="_blank" rel="noopener" class="promo-card promo-card--karaoke">
+          <span class="promo-ad-badge">Ad</span>
           <span class="promo-icon">🎤</span>
           <div class="promo-text">
             <div class="promo-title">Karaoke Party <i class="ti ti-external-link"></i></div>
             <div class="promo-sub">Turn any song into a karaoke track — free vocal remover</div>
           </div>
         </a>
-        <a href="https://visitorpasses.in" target="_blank" rel="noopener" class="promo-card">
+        <a href="https://visitorpasses.in" target="_blank" rel="noopener" class="promo-card promo-card--visitorpasses">
+          <span class="promo-ad-badge">Ad</span>
           <span class="promo-icon">🔐</span>
           <div class="promo-text">
             <div class="promo-title">VisitorPasses <i class="ti ti-external-link"></i></div>
@@ -313,12 +390,12 @@
   <!-- HOW IT WORKS -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
-      <h2 class="section-heading">How this Kochi auto fare checker works</h2>
+      <h2 class="section-heading">How this {city.name} auto fare checker works</h2>
       <div class="how-grid">
-        <div class="how-card"><div class="how-icon"><i class="ti ti-map-2"></i></div><h3>Live route via Google Maps</h3><p>We fetch your exact route with real-time Kochi traffic to get accurate distance and journey time.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-map-2"></i></div><h3>Live route via Google Maps</h3><p>We fetch your exact route with real-time {city.name} traffic to get accurate distance and journey time.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-traffic-cone"></i></div><h3>Wait time from traffic delay</h3><p>Traffic delay × 0.9 estimates genuine standstill time — the portion that accrues meter waiting charges.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official Kerala tariff</h3><p>₹15.0/km + ₹1.5/min wait + night surcharge, exactly as per May 2022 rates.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±₹5 tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond ₹5 are flagged as tampering.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>₹{perKmDisplay}/km + ₹{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±₹{T.TOLERANCE} tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond ₹{T.TOLERANCE} are flagged as tampering.</p></div>
       </div>
     </div>
   </section>
@@ -326,18 +403,18 @@
   <!-- TARIFF TABLE -->
   <section class="tariff-section" id="tariff">
     <div class="container" data-nosnippet>
-      <h2 class="section-heading">Kochi Auto Rickshaw Fare Chart May 2022</h2>
-      <p class="section-sub">Official rates as per Kerala Motor Vehicles Department — <strong>May 2022</strong></p>
+      <h2 class="section-heading">{city.name} Auto Rickshaw Fare Chart {city.tariffDate}</h2>
+      <p class="section-sub">Official rates as per {city.state} Motor Vehicles Department — <strong>{city.tariffDate}</strong></p>
       <div class="tariff-table-wrap">
         <table class="tariff-table">
           <thead><tr><th>Component</th><th>Rate</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>Minimum fare</td><td>₹30</td><td>First 1.5 km</td></tr>
-            <tr><td>Per km rate</td><td>₹15.0 / km</td><td>Beyond 1.5 km</td></tr>
-            <tr><td>Waiting charge</td><td>₹1.50 / min</td><td>Vehicle stationary</td></tr>
-            <tr><td>Night surcharge</td><td>+50%</td><td>10 PM – 5 AM</td></tr>
-            
-            <tr><td>Tolerance band</td><td>±₹5</td><td>Acceptable meter rounding</td></tr>
+            <tr><td>Minimum fare</td><td>₹{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
+            <tr><td>Per km rate</td><td>₹{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+            <tr><td>Waiting charge</td><td>₹{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
+            <tr><td>Night surcharge</td><td>+{nightPct}%</td><td>{nightWindow}</td></tr>
+            <tr><td>Luggage</td><td>₹{T.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
+            <tr><td>Tolerance band</td><td>±₹{T.TOLERANCE}</td><td>Acceptable meter rounding</td></tr>
           </tbody>
         </table>
       </div>
@@ -347,23 +424,23 @@
   <!-- FAQ -->
   <section class="faq-section" id="faq">
     <div class="container">
-      <h2 class="section-heading">Frequently asked questions — Kochi autos</h2>
+      <h2 class="section-heading">Frequently asked questions — {city.name} autos</h2>
       <div class="faq-list">
         <details class="faq-item">
-          <summary class="faq-q">What is the Kochi auto rickshaw fare per km in May 2022?</summary>
-          <div class="faq-a">The rate is <strong>₹15/km</strong> as per the Kerala Motor Vehicles Department (May 2022). The minimum fare is ₹30 for the first 1.5 km.</div>
+          <summary class="faq-q">What is the {city.name} auto rickshaw fare per km in {city.tariffDate}?</summary>
+          <div class="faq-a">The rate is <strong>₹{perKmDisplay}/km</strong> as per the {city.state} Motor Vehicles Department ({city.tariffDate}). The minimum fare is ₹{T.MIN_FARE} for the first {T.MIN_KM} km.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How do I know if my Kochi auto meter is tampered?</summary>
-          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than ₹5, tampering is likely. Signs include fares that seem very high for a short distance.</div>
+          <summary class="faq-q">How do I know if my {city.name} auto meter is tampered?</summary>
+          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than ₹{T.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">What is the night surcharge for Kochi autos?</summary>
-          <div class="faq-a">A <strong>50% night surcharge</strong> applies to all rides between <strong>10 PM – 5 AM</strong>.</div>
+          <summary class="faq-q">What is the night surcharge for {city.name} autos?</summary>
+          <div class="faq-a">A <strong>{nightPct}% night surcharge</strong> applies to all rides between <strong>{nightWindow}</strong>.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How do I complain about a tampered auto meter in Kochi?</summary>
-          <div class="faq-a">Call the helpline <strong>91 88 96 11 00</strong> or contact your nearest RTO with the auto's number plate and trip details.</div>
+          <summary class="faq-q">How do I complain about a tampered auto meter in {city.name}?</summary>
+          <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest RTO with the auto's number plate and trip details.</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Is MeterSahi? free to use?</summary>
@@ -378,28 +455,33 @@
     <div class="container">
       <div class="complaint-inner">
         <div class="complaint-text">
-          <h2>Auto meter tampered? How to complain in Kochi</h2>
+          <h2>Auto meter tampered? How to complain in {city.name}</h2>
           <p>Every report helps clean up the system.</p>
         </div>
         <div class="complaint-options">
         <div class="complaint-card">
           <i class="ti ti-phone"></i>
           <span class="cc-label">State Transport Helpline</span>
-          <span class="cc-value">91 88 96 11 00</span>
+          <span class="cc-value">{city.helpline}</span>
           <span class="cc-hint">Toll-free</span>
         </div>
-        <div class="complaint-card">
-          <i class="ti ti-building-bank"></i>
-          <span class="cc-label">Kerala MVD</span>
-          <span class="cc-value">91 88 96 11 00</span>
-          <span class="cc-hint">complaints.mvd@kerala.gov.in</span>
+        {city.rtoContact.map((rto) => (
+          <div class="complaint-card">
+            <i class="ti ti-building-bank"></i>
+            <span class="cc-label">{rto.label}</span>
+            <span class="cc-value">{rto.phone}</span>
+            <span class="cc-hint">{rto.email || '—'}</span>
+          </div>
+        ))}
+        {city.onlineComplaint && (
+          <div class="complaint-card">
+            <i class="ti ti-device-laptop"></i>
+            <span class="cc-label">{city.onlineComplaint.label}</span>
+            <span class="cc-value">{city.onlineComplaint.value}</span>
+            <span class="cc-hint">{city.onlineComplaint.hint}</span>
+          </div>
+        )}
         </div>
-        <div class="complaint-card">
-          <i class="ti ti-device-laptop"></i>
-          <span class="cc-label">Online complaint</span>
-          <span class="cc-value">Aaple Sarkar / State portal</span>
-          <span class="cc-hint">File via state transport website</span>
-        </div></div>
       </div>
     </div>
   </section>
@@ -414,26 +496,24 @@
         <a href="#complaint">Complaint</a>
         <a href="#how-it-works">How it works</a>
       </div>
-      <p>Tariff: Kerala Motor Vehicles Dept, May 2022 &nbsp;·&nbsp; Not an official government portal</p>
+      <p>Tariff: {city.state} Motor Vehicles Dept, {city.tariffDate} &nbsp;·&nbsp; Not an official government portal</p>
       <p style="margin-top:6px">© 2025 MeterSahi? &nbsp;·&nbsp; <a href="https://metersahi.in/">metersahi.in</a></p>
+      <p class="site-footer-credit">made with love by <a href="mailto:parag.airun@gmail.com">parag.airun@gmail.com</a></p>
     </div>
   </footer>
 
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-
-  <script>const CITY_SLUG = 'kochi';</script>
-  <script src="/ride-compare.js"></script>
-  <script src="/cities.js"></script>
-  <script src="/app.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places&callback=initMap" async defer onerror="handleMapError()"></script>
+  <script is:inline set:html={`window.CITY_SLUG = ${JSON.stringify(city.slug)}; var CITY_SLUG = window.CITY_SLUG;`}></script>
+  <script is:inline src="/cities.js"></script>
+  <script is:inline src="/ride-compare.js"></script>
+  <script is:inline src="/app.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places,geometry&callback=initMap" async defer onerror="handleMapError()"></script>
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZP9JS7LCFS"></script>
-  <script>
+  <script is:inline>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());

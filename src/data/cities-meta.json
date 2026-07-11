@@ -1,0 +1,74 @@
+{
+  "mumbai": {
+    "slug": "mumbai",
+    "name": "Mumbai",
+    "state": "Maharashtra",
+    "hasTaxi": true,
+    "tariffDate": "1 Feb 2025",
+    "taxiTariffDate": "1 Feb 2025"
+  },
+  "pune": {
+    "slug": "pune",
+    "name": "Pune",
+    "state": "Maharashtra",
+    "hasTaxi": true,
+    "tariffDate": "1 Feb 2025",
+    "taxiTariffDate": "1 Feb 2025"
+  },
+  "delhi": {
+    "slug": "delhi",
+    "name": "New Delhi",
+    "state": "Delhi",
+    "hasTaxi": true,
+    "tariffDate": "Oct 2022",
+    "taxiTariffDate": "9 Jan 2023"
+  },
+  "bengaluru": {
+    "slug": "bengaluru",
+    "name": "Bengaluru",
+    "state": "Karnataka",
+    "hasTaxi": false,
+    "tariffDate": "1 Aug 2025",
+    "taxiTariffDate": null
+  },
+  "hyderabad": {
+    "slug": "hyderabad",
+    "name": "Hyderabad",
+    "state": "Telangana",
+    "hasTaxi": false,
+    "tariffDate": "Current official",
+    "taxiTariffDate": null
+  },
+  "kochi": {
+    "slug": "kochi",
+    "name": "Kochi",
+    "state": "Kerala",
+    "hasTaxi": false,
+    "tariffDate": "May 2022",
+    "taxiTariffDate": null
+  },
+  "kolkata": {
+    "slug": "kolkata",
+    "name": "Kolkata",
+    "state": "West Bengal",
+    "hasTaxi": true,
+    "tariffDate": "Current official",
+    "taxiTariffDate": "~2016 (unrevised since, per Jan 2025 news report) - unconfirmed against original notification"
+  },
+  "chennai": {
+    "slug": "chennai",
+    "name": "Chennai",
+    "state": "Tamil Nadu",
+    "hasTaxi": false,
+    "tariffDate": "Current official",
+    "taxiTariffDate": null
+  },
+  "ahmedabad": {
+    "slug": "ahmedabad",
+    "name": "Ahmedabad",
+    "state": "Gujarat",
+    "hasTaxi": false,
+    "tariffDate": "Nov 2021",
+    "taxiTariffDate": null
+  }
+}

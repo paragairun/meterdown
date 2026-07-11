@@ -1,0 +1,435 @@
+{
+  "mumbai": {
+    "name": "Mumbai",
+    "slug": "mumbai",
+    "state": "Maharashtra",
+    "mapCenter": {
+      "lat": 19.076,
+      "lng": 72.8777
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 18.85,
+        "lng": 72.75
+      },
+      "ne": {
+        "lat": 19.32,
+        "lng": 73.05
+      }
+    },
+    "tariffDate": "1 Feb 2025",
+    "tariff": {
+      "MIN_FARE": 26,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 17.14,
+      "WAIT_RATE_PER_MIN": 1.714,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "taxiTariffDate": "1 Feb 2025",
+    "taxiTariff": {
+      "MIN_FARE": 31,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 20.66,
+      "WAIT_RATE_PER_MIN": 2.066,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Mumbai Central",
+        "phone": "9076201010",
+        "email": "mh01taxicomplaint@gmail.com"
+      },
+      {
+        "label": "RTO Mumbai West",
+        "phone": "9920240202",
+        "email": "mh02.autotaxicomplaint@gmail.com"
+      }
+    ],
+    "onlineComplaint": {
+      "label": "Online complaint",
+      "value": "Aaple Sarkar / State portal",
+      "hint": "File via state transport website"
+    },
+    "helpline": "1800-233-1922"
+  },
+  "pune": {
+    "name": "Pune",
+    "slug": "pune",
+    "state": "Maharashtra",
+    "mapCenter": {
+      "lat": 18.5204,
+      "lng": 73.8567
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 18.4,
+        "lng": 73.7
+      },
+      "ne": {
+        "lat": 18.65,
+        "lng": 74
+      }
+    },
+    "tariffDate": "1 Feb 2025",
+    "tariff": {
+      "MIN_FARE": 26,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 17.14,
+      "WAIT_RATE_PER_MIN": 1.714,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "taxiTariffDate": "1 Feb 2025",
+    "taxiTariff": {
+      "MIN_FARE": 31,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 20.66,
+      "WAIT_RATE_PER_MIN": 2.066,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Pune",
+        "phone": "020-26051400",
+        "email": ""
+      }
+    ],
+    "onlineComplaint": {
+      "label": "Online complaint",
+      "value": "Aaple Sarkar / State portal",
+      "hint": "File via state transport website"
+    },
+    "helpline": "1800-233-1922"
+  },
+  "delhi": {
+    "name": "New Delhi",
+    "slug": "delhi",
+    "state": "Delhi",
+    "mapCenter": {
+      "lat": 28.6139,
+      "lng": 77.209
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 28.4,
+        "lng": 76.84
+      },
+      "ne": {
+        "lat": 28.88,
+        "lng": 77.35
+      }
+    },
+    "tariffDate": "Oct 2022",
+    "tariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 11,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "taxiTariffDate": "9 Jan 2023",
+    "taxiTariff": {
+      "MIN_FARE": 40,
+      "MIN_KM": 1,
+      "RATE_PER_KM": 17,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 15,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "STA Delhi",
+        "phone": "011-23370004",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-11-0443"
+  },
+  "bengaluru": {
+    "name": "Bengaluru",
+    "slug": "bengaluru",
+    "state": "Karnataka",
+    "mapCenter": {
+      "lat": 12.9716,
+      "lng": 77.5946
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 12.8,
+        "lng": 77.4
+      },
+      "ne": {
+        "lat": 13.15,
+        "lng": 77.8
+      }
+    },
+    "tariffDate": "1 Aug 2025",
+    "tariff": {
+      "MIN_FARE": 36,
+      "MIN_KM": 2,
+      "RATE_PER_KM": 18,
+      "WAIT_RATE_PER_MIN": 0.667,
+      "WAIT_FREE_MINS": 5,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Bengaluru East",
+        "phone": "080-22372109",
+        "email": ""
+      },
+      {
+        "label": "RTO Bengaluru West",
+        "phone": "080-23323233",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-425-1616"
+  },
+  "hyderabad": {
+    "name": "Hyderabad",
+    "slug": "hyderabad",
+    "state": "Telangana",
+    "mapCenter": {
+      "lat": 17.385,
+      "lng": 78.4867
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 17.2,
+        "lng": 78.25
+      },
+      "ne": {
+        "lat": 17.6,
+        "lng": 78.65
+      }
+    },
+    "tariffDate": "Current official",
+    "tariff": {
+      "MIN_FARE": 20,
+      "MIN_KM": 2,
+      "RATE_PER_KM": 11,
+      "WAIT_RATE_PER_MIN": 0,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "TS Transport Dept",
+        "phone": "040-23450145",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-425-1616"
+  },
+  "kochi": {
+    "name": "Kochi",
+    "slug": "kochi",
+    "state": "Kerala",
+    "mapCenter": {
+      "lat": 9.9312,
+      "lng": 76.2673
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 9.75,
+        "lng": 76.1
+      },
+      "ne": {
+        "lat": 10.15,
+        "lng": 76.45
+      }
+    },
+    "tariffDate": "May 2022",
+    "tariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1.5,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "Kerala MVD Helpdesk",
+        "phone": "91 88 96 11 00",
+        "email": "complaints.mvd@kerala.gov.in"
+      }
+    ],
+    "helpline": "91 88 96 11 00"
+  },
+  "kolkata": {
+    "name": "Kolkata",
+    "slug": "kolkata",
+    "state": "West Bengal",
+    "mapCenter": {
+      "lat": 22.5726,
+      "lng": 88.3639
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 22.4,
+        "lng": 88.2
+      },
+      "ne": {
+        "lat": 22.75,
+        "lng": 88.55
+      }
+    },
+    "tariffDate": "Current official",
+    "tariff": {
+      "MIN_FARE": 25,
+      "MIN_KM": 2,
+      "RATE_PER_KM": 13,
+      "WAIT_RATE_PER_MIN": 0.5,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "taxiTariffDate": "~2016 (unrevised since, per Jan 2025 news report) - unconfirmed against original notification",
+    "taxiTariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 2,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 5,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "WB Transport Dept",
+        "phone": "033-22143053",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-345-5555"
+  },
+  "chennai": {
+    "name": "Chennai",
+    "slug": "chennai",
+    "state": "Tamil Nadu",
+    "mapCenter": {
+      "lat": 13.0827,
+      "lng": 80.2707
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 12.85,
+        "lng": 80.05
+      },
+      "ne": {
+        "lat": 13.25,
+        "lng": 80.45
+      }
+    },
+    "tariffDate": "Current official",
+    "tariff": {
+      "MIN_FARE": 25,
+      "MIN_KM": 1.8,
+      "RATE_PER_KM": 16,
+      "WAIT_RATE_PER_MIN": 0.7,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "TN Transport Dept",
+        "phone": "044-24333220",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-425-1616"
+  },
+  "ahmedabad": {
+    "name": "Ahmedabad",
+    "slug": "ahmedabad",
+    "state": "Gujarat",
+    "mapCenter": {
+      "lat": 23.0225,
+      "lng": 72.5714
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 22.85,
+        "lng": 72.4
+      },
+      "ne": {
+        "lat": 23.2,
+        "lng": 72.75
+      }
+    },
+    "tariffDate": "Nov 2021",
+    "tariff": {
+      "MIN_FARE": 18,
+      "MIN_KM": 1.25,
+      "RATE_PER_KM": 13,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 6,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Ahmedabad",
+        "phone": "079-26580701",
+        "email": ""
+      }
+    ],
+    "helpline": "1800-233-1022"
+  }
+}
