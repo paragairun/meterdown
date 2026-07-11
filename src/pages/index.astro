@@ -1,0 +1,123 @@
+---
+import citiesData from '../data/cities.json';
+import cityEmoji from '../data/city-emoji.json';
+
+const cityList = Object.keys(citiesData).map((slug) => ({
+  slug,
+  name: (citiesData as any)[slug].name,
+  emoji: (cityEmoji as any)[slug] || '\ud83d\udccd',
+}));
+const cityCount = cityList.length;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google Tag Manager -->
+  <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-P4SMHLKF');</script>
+  <!-- End Google Tag Manager -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MeterSahi?" />
+  <title>MeterSahi? — Taxi & Auto Rickshaw Fare Checker for Indian Cities</title>
+  <meta name="description" content="Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff." />
+  <link rel="canonical" href="https://metersahi.in/" />
+  <meta property="og:url" content="https://metersahi.in/" />
+  <meta property="og:title" content="MeterSahi? — Taxi & Auto Rickshaw Fare Checker" />
+  <meta property="og:description" content={`Google maps based meter fare calculator for ${cityCount} Indian cities. Instantly know if your auto is overcharging you.`} />
+  <meta name="theme-color" content="#1a1a1a" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Tabler icons intentionally omitted: this page uses emoji only, confirmed
+       zero ti- classes used. Full icon font was pure render-blocking dead
+       weight here (PageSpeed flagged ~33 KiB unused CSS). Still loaded
+       normally on city pages, which do use ti- icons. -->
+  <style>
+    *{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    body{
+      font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      background:#1a1a1a;color:#fff;
+      min-height:100vh;
+      display:-webkit-flex;display:flex;
+      -webkit-flex-direction:column;flex-direction:column;
+      -webkit-align-items:center;align-items:center;
+      -webkit-justify-content:center;justify-content:center;
+      padding:24px;padding-bottom:max(24px,env(safe-area-inset-bottom));
+    }
+    .logo{font-size:36px;font-weight:600;color:#f59e0b;letter-spacing:-0.02em;margin-bottom:6px}
+    .tagline{font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:40px;text-align:center}
+    .geo-spinner{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;gap:14px;margin-bottom:32px}
+    .spinner-ring{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#f59e0b;border-radius:50%;-webkit-animation:spin 0.7s linear infinite;animation:spin 0.7s linear infinite}
+    @-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .geo-text{font-size:14px;color:rgba(255,255,255,0.5)}
+    .city-chooser{display:none;width:100%;max-width:440px;text-align:center}
+    .city-chooser h2{font-size:20px;font-weight:500;margin-bottom:6px}
+    .city-chooser p{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:24px}
+    .city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+    @media(max-width:360px){.city-grid{grid-template-columns:repeat(2,1fr)}}
+    .city-btn{
+      padding:14px 8px;background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.1);
+      -webkit-border-radius:12px;border-radius:12px;
+      color:#fff;font-size:13px;font-weight:500;cursor:pointer;
+      -webkit-transition:background 0.15s,border-color 0.15s,color 0.15s;
+      transition:background 0.15s,border-color 0.15s,color 0.15s;
+      text-decoration:none;
+      display:-webkit-flex;display:flex;
+      -webkit-flex-direction:column;flex-direction:column;
+      -webkit-align-items:center;align-items:center;
+      gap:5px;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+    .city-btn:hover,.city-btn:active{background:rgba(245,158,11,0.15);border-color:#f59e0b;color:#f59e0b}
+    .city-emoji{font-size:22px}
+    .permission-note{font-size:12px;color:rgba(255,255,255,0.3);margin-top:16px;line-height:1.6;max-width:300px;margin-left:auto;margin-right:auto}
+  </style>
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <div style="text-align:center;width:100%;max-width:440px">
+    <div class="logo">🛺 MeterSahi?</div>
+    <div class="tagline">Taxi & Auto rickshaw fare checker · {cityCount} Indian cities</div>
+
+    <div class="geo-spinner" id="geo-spinner">
+      <div class="spinner-ring"></div>
+      <div class="geo-text" id="geo-text">Detecting your city…</div>
+    </div>
+
+    <div class="city-chooser" id="city-chooser">
+      <h2>Select your city</h2>
+      <p>Pick your city to check taxi and auto fares</p>
+      <div class="city-grid">
+        {cityList.map((c) => (
+          <a class="city-btn" href={`/${c.slug}/`}><span class="city-emoji">{c.emoji}</span>{c.name}</a>
+        ))}
+      </div>
+      <p class="permission-note">Allow location access when prompted to auto-detect your city next time.</p>
+    </div>
+  </div>
+
+  <!-- Lightweight redirect-only script (not the full cities.js) - the
+       homepage only needs city detection, not tariff data for every city. -->
+  <script is:inline src="/geo-redirect.js"></script>
+  <script is:inline>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { detectCityAndRedirect(); });
+    } else {
+      detectCityAndRedirect();
+    }
+  </script>
+</body>
+</html>

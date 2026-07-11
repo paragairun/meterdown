@@ -1,0 +1,14 @@
+---
+import CityLayout from '../../layouts/CityLayout.astro';
+import citiesData from '../../data/cities.json';
+
+export function getStaticPaths() {
+  return Object.keys(citiesData).map((slug) => ({
+    params: { city: slug },
+    props: { city: { ...(citiesData as any)[slug], slug } },
+  }));
+}
+
+const { city } = Astro.props;
+---
+<CityLayout city={city} />
