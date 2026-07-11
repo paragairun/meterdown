@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://metersahi.in/sitemap.xml

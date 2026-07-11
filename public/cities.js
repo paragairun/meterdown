@@ -320,12 +320,88 @@ const CITIES = {
     ],
     helpline: '1800-233-1022',
   },
+
+  // Taxi-primary city: no auto-rickshaw tariff exists in any meaningful
+  // sense in Goa (multiple firsthand accounts confirm autos are rare to
+  // nonexistent, especially North Goa). The regulated vehicle is the
+  // Yellow-Black Taxi. Rate blends GoaMiles (govt-backed taxi app,
+  // clean per-km + per-min figures) with the Jan 2021 state gazette's
+  // night surcharge. CAUTION: multiple independent accounts (locals,
+  // Quora) report the taxi union resists government meters and drivers
+  // often don't follow the official rate in practice - shown here
+  // anyway since the point is giving users the correct number to push
+  // back with, same reasoning as Kolkata's stale-but-official tariff.
+  goa: {
+    name:         'Goa',
+    slug:         'goa',
+    state:        'Goa',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 15.4909, lng: 73.8278 },
+    acBounds:     { sw: { lat: 14.90, lng: 73.70 }, ne: { lat: 15.80, lng: 74.35 } },
+    tariffDate:   'GoaMiles / 2021 gazette',
+    tariff: {
+      MIN_FARE:          22,
+      MIN_KM:            1,
+      RATE_PER_KM:       21.50,
+      WAIT_RATE_PER_MIN: 1.00,
+      NIGHT_MULTIPLIER:  1.35,
+      NIGHT_START:       22,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Transport Dept Panaji', phone: '0832-2225606', email: '' },
+      { label: 'Transport Dept Margao', phone: '0832-2741962', email: '' },
+    ],
+    helpline: '0832-2225606',
+  },
+
+  // Taxi-primary city (see Goa comment above - same reasoning). Sikkim's
+  // official data is specifically for the government's own "Sikkim Cab"
+  // app, tiered by distance band (see computeFareTiered in this file).
+  // CAUTION: WAIT_RATE_PER_MIN is an assumption - the source notification
+  // only gives hourly/day-hire rates for extended hire, not a clean
+  // point-to-point per-minute waiting rate. Flagged here for correction
+  // if a better source turns up.
+  gangtok: {
+    name:         'Gangtok',
+    slug:         'gangtok',
+    state:        'Sikkim',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 27.3389, lng: 88.6065 },
+    acBounds:     { sw: { lat: 27.28, lng: 88.55 }, ne: { lat: 27.40, lng: 88.65 } },
+    tariffDate:   'Sikkim Cab tariff',
+    tariff: {
+      BANDS: [
+        { upTo: 2,      flatFare: 100 },
+        { upTo: 4,      flatFare: 200 },
+        { upTo: 15,     perKm: 40 },
+        { upTo: 50,     perKm: 38 },
+        { upTo: 75,     perKm: 33 },
+        { upTo: 999999, perKm: 24 },
+      ],
+      WAIT_RATE_PER_MIN: 2.00, // ASSUMPTION - see comment above
+      NIGHT_MULTIPLIER:  1.50,
+      NIGHT_START:       22,
+      NIGHT_END:         4,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'State Transport Authority', phone: '03592-202483', email: 'secy-transport-skm@sikkim.gov.in' },
+    ],
+    helpline: '03592-202483',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
 const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
+  'goa', 'gangtok',
 ];
 
 /* ════════════════════════════════════════════
@@ -426,6 +502,20 @@ var GEO_CITY_MAP = {
   'howrah':       'kolkata',
   'chennai':      'chennai',
   'ahmedabad':    'ahmedabad',
+
+  'panaji':       'goa',
+  'panjim':       'goa',
+  'margao':       'goa',
+  'madgaon':      'goa',
+  'vasco':        'goa',
+  'mapusa':       'goa',
+  'calangute':    'goa',
+  'candolim':     'goa',
+  'anjuna':       'goa',
+  'baga':         'goa',
+  'ponda':        'goa',
+
+  'gangtok':      'gangtok',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
@@ -441,6 +531,8 @@ var GEO_REGION_MAP = {
   'west bengal':    'kolkata',
   'tamil nadu':     'chennai',
   'gujarat':        'ahmedabad',
+  'goa':            'goa',
+  'sikkim':         'gangtok',
 };
 
 function cityFromString(cityStr, regionStr) {
@@ -495,6 +587,8 @@ function showCityChooser() {
 
 
 function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
+  if (tariff.BANDS) return computeFareTiered(distKm, waitMin, isNight, luggagePieces, tariff);
+
   const T = tariff;
 
   // Effective wait (subtract free minutes for cities that have them)
@@ -504,6 +598,48 @@ function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   let base = distKm <= T.MIN_KM
     ? T.MIN_FARE
     : Math.max(T.MIN_FARE, Math.round(distKm * T.RATE_PER_KM));
+
+  const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
+  const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);
+  let subtotal        = base + waitCharge + luggageCharge;
+  let nightAdd        = 0;
+
+  if (isNight) {
+    const withNight = Math.round(subtotal * T.NIGHT_MULTIPLIER);
+    nightAdd  = withNight - subtotal;
+    subtotal  = withNight;
+  }
+
+  return { base, waitCharge, luggageCharge, nightAdd, subtotal };
+}
+
+/**
+ * Tiered/slab fare calculation - used by cities where the rate changes
+ * by distance band and the WHOLE trip is billed at that band's rate
+ * (not cumulative like income tax brackets). E.g. Sikkim's "Sikkim Cab"
+ * tariff: 0-2km flat Rs100, 2-4km flat Rs200, 4-15km @ Rs40/km applied
+ * to the full distance, 15-50km @ Rs38/km applied to the full distance,
+ * and so on - a 10km trip costs 10 x 40 = Rs400, not a blend of bands.
+ * tariff.BANDS = [{upTo, flatFare} | {upTo, perKm}, ...] sorted ascending.
+ */
+function computeFareTiered(distKm, waitMin, isNight, luggagePieces, tariff) {
+  const T = tariff;
+  const freeWaitMins = T.WAIT_FREE_MINS || 0;
+  const billableWaitMin = Math.max(0, waitMin - freeWaitMins);
+
+  let base = null;
+  for (const band of T.BANDS) {
+    if (distKm <= band.upTo) {
+      base = (band.flatFare !== undefined) ? band.flatFare : Math.round(distKm * band.perKm);
+      break;
+    }
+  }
+  if (base === null) {
+    // Distance exceeded every band (shouldn't happen if the last band's
+    // upTo is a large sentinel) - fall back to the last band's rate.
+    const lastBand = T.BANDS[T.BANDS.length - 1];
+    base = (lastBand.flatFare !== undefined) ? lastBand.flatFare : Math.round(distKm * lastBand.perKm);
+  }
 
   const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
   const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);

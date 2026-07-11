@@ -13,9 +13,10 @@ interface RtoContact {
 }
 
 interface Tariff {
-  MIN_FARE: number;
-  MIN_KM: number;
-  RATE_PER_KM: number;
+  MIN_FARE?: number;
+  MIN_KM?: number;
+  RATE_PER_KM?: number;
+  BANDS?: Array<{ upTo: number; flatFare?: number; perKm?: number }>;
   WAIT_RATE_PER_MIN: number;
   NIGHT_MULTIPLIER: number;
   NIGHT_START: number;
@@ -35,6 +36,10 @@ interface City {
   rtoContact: RtoContact[];
   onlineComplaint?: { label: string; value: string; hint: string };
   helpline: string;
+  primaryVehicleType?: 'auto' | 'taxi'; // default 'auto'. Cities like Goa/Sikkim
+  // have no auto-rickshaw tariff at all - taxi IS the primary/only vehicle there,
+  // not a secondary toggle. This swaps every "Auto Rickshaw" label to "Taxi"
+  // throughout the page instead of mislabeling a taxi tariff as an auto one.
 }
 
 interface Props {
@@ -42,8 +47,16 @@ interface Props {
 }
 
 const { city } = Astro.props;
-const hasTaxi = !!city.taxiTariff;
+const isTaxiPrimary = city.primaryVehicleType === 'taxi';
+// hasTaxi controls the Auto/Taxi TOGGLE - only meaningful when a city has BOTH
+// an auto tariff AND a taxi tariff (Mumbai/Pune/Delhi/Kolkata). Taxi-primary
+// cities (Goa/Sikkim) have no toggle - taxi is simply city.tariff directly.
+const hasTaxi = !isTaxiPrimary && !!city.taxiTariff;
 const T = city.tariff;
+
+const vehicleLabel = isTaxiPrimary ? 'Taxi' : 'Auto Rickshaw';
+const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'auto';
+const vehicleMeterLabel = isTaxiPrimary ? 'Taxi' : 'Auto';
 
 const nightPct = Math.round((T.NIGHT_MULTIPLIER - 1) * 100);
 function to12Hour(hour24: number): string {
@@ -52,22 +65,33 @@ function to12Hour(hour24: number): string {
   if (hour12 === 0) hour12 = 12;
   return `${hour12} ${period}`;
 }
-const nightWindow = `${to12Hour(T.NIGHT_START)} \u2013 ${to12Hour(T.NIGHT_END)}`;
-const perKmDisplay = T.RATE_PER_KM.toFixed(2);
-const waitDisplay = T.WAIT_RATE_PER_MIN.toFixed(2);
+const nightWindow = `${to12Hour(T.NIGHT_START)} – ${to12Hour(T.NIGHT_END)}`;
+const isTiered = !!T.BANDS;
+const bands = isTiered ? T.BANDS! : [];
 
-const title = `${city.name} Auto Rickshaw Fare Calculator — Check Meter Tampering | MeterSahi?`;
-const ogTitle = `${city.name} Auto Fare Calculator — Is Your Meter Tampered? | MeterSahi?`;
+// Display values: for flat-rate cities these read directly off the tariff.
+// For tiered cities (bands), there's no single "per km rate" - we show the
+// first band's flat fare as "starting fare" and the longest-distance band's
+// rate as the "from ₹X/km" headline, with the full band table shown separately.
+const minFareDisplay = isTiered ? bands[0].flatFare : T.MIN_FARE;
+const perKmDisplay = isTiered ? bands[bands.length - 1].perKm!.toFixed(2) : T.RATE_PER_KM.toFixed(2);
+const waitDisplay = T.WAIT_RATE_PER_MIN.toFixed(2);
+const rateHeadline = isTiered
+  ? `From ₹${bands[bands.length - 1].perKm}/km (tiered by distance)`
+  : `₹${perKmDisplay}/km`;
+
+const title = `${city.name} ${vehicleLabel} Fare Calculator — Check Meter Tampering | MeterSahi?`;
+const ogTitle = `${city.name} ${vehicleMeterLabel} Fare Calculator — Is Your Meter Tampered? | MeterSahi?`;
 const description = "Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff.";
-const keywords = `${city.name.toLowerCase()} auto fare calculator, autorickshaw fare ${city.name.toLowerCase()}, auto meter tampered ${city.name.toLowerCase()}, rickshaw fare check ${city.name.toLowerCase()}, meter sahi, auto fare per km ${city.name.toLowerCase()}`;
+const keywords = `${city.name.toLowerCase()} ${vehicleLabelShort} fare calculator, ${vehicleLabelShort} fare ${city.name.toLowerCase()}, ${vehicleLabelShort} meter tampered ${city.name.toLowerCase()}, ${vehicleLabelShort} fare check ${city.name.toLowerCase()}, meter sahi, ${vehicleLabelShort} fare per km ${city.name.toLowerCase()}`;
 const canonical = `https://metersahi.in/${city.slug}/`;
 
 const webAppJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: `MeterSahi? — ${city.name} Auto Rickshaw Fare Calculator`,
+  name: `MeterSahi? — ${city.name} ${vehicleLabel} Fare Calculator`,
   url: canonical,
-  description: `Free calculator to check correct ${city.name} auto fare per ${city.state} tariff (${city.tariffDate}). Detects tampered meters.`,
+  description: `Free calculator to check correct ${city.name} ${vehicleLabelShort} fare per ${city.state} tariff (${city.tariffDate}). Detects tampered meters.`,
   applicationCategory: "UtilityApplication",
   offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
 };
@@ -78,15 +102,17 @@ const faqJsonLd = {
   mainEntity: [
     {
       "@type": "Question",
-      name: `What is the ${city.name} auto rickshaw fare per km in ${city.tariffDate}?`,
+      name: `What is the ${city.name} ${vehicleLabelShort} fare per km in ${city.tariffDate}?`,
       acceptedAnswer: {
         "@type": "Answer",
-        text: `The ${city.name} auto fare is ₹${perKmDisplay}/km, with a minimum fare of ₹${T.MIN_FARE} per official ${city.state} tariff as of ${city.tariffDate}.`,
+        text: isTiered
+          ? `The ${city.name} ${vehicleLabelShort} fare starts at ₹${minFareDisplay} and is tiered by distance (down to ₹${perKmDisplay}/km for longer trips), per official ${city.state} tariff as of ${city.tariffDate}.`
+          : `The ${city.name} ${vehicleLabelShort} fare is ₹${perKmDisplay}/km, with a minimum fare of ₹${minFareDisplay} per official ${city.state} tariff as of ${city.tariffDate}.`,
       },
     },
     {
       "@type": "Question",
-      name: `How do I know if my ${city.name} auto meter is tampered?`,
+      name: `How do I know if my ${city.name} ${vehicleLabelShort} meter is tampered?`,
       acceptedAnswer: {
         "@type": "Answer",
         text: `Use MeterSahi? — enter your pickup and drop and the fare charged. If the driver charges more than ₹${T.TOLERANCE} above the calculated correct fare, tampering is likely.`,
@@ -184,7 +210,7 @@ const faqJsonLd = {
   <!-- HERO -->
   <section class="hero">
     <div class="container">
-      <h1 class="hero-heading">{city.name} Auto Rickshaw Fare Calculator</h1>
+      <h1 class="hero-heading">{city.name} {vehicleLabel} Fare Calculator</h1>
       <p class="hero-sub">Google maps based fare calculator. Enter your route,<strong> AI calculates distance and waiting time.</strong> Instantly displays correct fare as per official tariff.</p>
       <div class="hero-chips">
         <span class="hero-chip"><i class="ti ti-map-pin"></i> Live Google Maps routing</span>
@@ -257,7 +283,7 @@ const faqJsonLd = {
             <span class="wait-toggle-track"><span class="wait-toggle-thumb"></span></span>
           </span>
         </label>
-        <span class="label-hint">Know your auto was stuck longer? Enter the actual wait time.</span>
+        <span class="label-hint">Know your {vehicleLabelShort} was stuck longer? Enter the actual wait time.</span>
         <div class="wait-time-inputs" id="wait-time-inputs" style="display:none">
           <div class="wait-time-input-group">
             <input id="wait-min" type="number" min="0" placeholder="0"/>
@@ -305,9 +331,9 @@ const faqJsonLd = {
         <p class="empty-title">Your route will appear here</p>
         <p class="empty-body">Enter pickup and drop-off, then hit Calculate to see the map and correct fare.</p>
         <div class="fare-card-preview">
-          <p class="fare-card-title">{city.name} auto tariff — {city.tariffDate}</p>
+          <p class="fare-card-title">{city.name} {vehicleLabelShort} tariff — {city.tariffDate}</p>
           <div class="fare-card-grid">
-            <div class="fare-card-item"><span class="fc-label">Min. fare</span><span class="fc-value">₹{T.MIN_FARE}</span></div>
+            <div class="fare-card-item"><span class="fc-label">{isTiered ? 'Starts at' : 'Min. fare'}</span><span class="fc-value">₹{minFareDisplay}</span></div>
             <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">₹{perKmDisplay}</span></div>
             <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">₹{waitDisplay}</span></div>
             <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{nightPct}%</span></div>
@@ -333,7 +359,7 @@ const faqJsonLd = {
           </div>
           <div id="report-vehicle-section" class="report-vehicle-section" style="display:none">
             <div class="report-header"><i class="ti ti-alert-triangle"></i><span>Report this vehicle</span></div>
-            <p class="report-subtext">Enter the auto's number plate to log this report.</p>
+            <p class="report-subtext">Enter the {vehicleLabelShort}'s number plate to log this report.</p>
             <div class="vehicle-number-row">
               <div class="vn-group"><label class="vn-label">State</label><div class="searchable-select" id="ss-state"><input class="ss-input" type="text" placeholder="MH" id="vn-state-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-state-dropdown"></div></div></div>
               <div class="vn-sep">–</div>
@@ -390,11 +416,11 @@ const faqJsonLd = {
   <!-- HOW IT WORKS -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
-      <h2 class="section-heading">How this {city.name} auto fare checker works</h2>
+      <h2 class="section-heading">How this {city.name} {vehicleLabelShort} fare checker works</h2>
       <div class="how-grid">
         <div class="how-card"><div class="how-icon"><i class="ti ti-map-2"></i></div><h3>Live route via Google Maps</h3><p>We fetch your exact route with real-time {city.name} traffic to get accurate distance and journey time.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-traffic-cone"></i></div><h3>Wait time from traffic delay</h3><p>Traffic delay × 0.9 estimates genuine standstill time — the portion that accrues meter waiting charges.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>₹{perKmDisplay}/km + ₹{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>{rateHeadline} + ₹{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±₹{T.TOLERANCE} tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond ₹{T.TOLERANCE} are flagged as tampering.</p></div>
       </div>
     </div>
@@ -403,14 +429,25 @@ const faqJsonLd = {
   <!-- TARIFF TABLE -->
   <section class="tariff-section" id="tariff">
     <div class="container" data-nosnippet>
-      <h2 class="section-heading">{city.name} Auto Rickshaw Fare Chart {city.tariffDate}</h2>
+      <h2 class="section-heading">{city.name} {vehicleLabel} Fare Chart {city.tariffDate}</h2>
       <p class="section-sub">Official rates as per {city.state} Motor Vehicles Department — <strong>{city.tariffDate}</strong></p>
       <div class="tariff-table-wrap">
         <table class="tariff-table">
           <thead><tr><th>Component</th><th>Rate</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>Minimum fare</td><td>₹{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
-            <tr><td>Per km rate</td><td>₹{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+            {isTiered ? (
+              bands.map((band, i) => {
+                const prevUpTo = i === 0 ? 0 : bands[i - 1].upTo;
+                const range = band.upTo >= 99999 ? `${prevUpTo} km+` : `${prevUpTo} - ${band.upTo} km`;
+                const rate = band.flatFare !== undefined ? `₹${band.flatFare} flat` : `₹${band.perKm} / km`;
+                return <tr><td>Distance {range}</td><td>{rate}</td><td>{band.flatFare !== undefined ? 'Flat fare for this range' : 'Applied to full trip distance'}</td></tr>;
+              })
+            ) : (
+              <>
+                <tr><td>Minimum fare</td><td>₹{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
+                <tr><td>Per km rate</td><td>₹{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+              </>
+            )}
             <tr><td>Waiting charge</td><td>₹{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
             <tr><td>Night surcharge</td><td>+{nightPct}%</td><td>{nightWindow}</td></tr>
             <tr><td>Luggage</td><td>₹{T.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
@@ -424,23 +461,23 @@ const faqJsonLd = {
   <!-- FAQ -->
   <section class="faq-section" id="faq">
     <div class="container">
-      <h2 class="section-heading">Frequently asked questions — {city.name} autos</h2>
+      <h2 class="section-heading">Frequently asked questions — {city.name} {vehicleLabelShort}s</h2>
       <div class="faq-list">
         <details class="faq-item">
-          <summary class="faq-q">What is the {city.name} auto rickshaw fare per km in {city.tariffDate}?</summary>
-          <div class="faq-a">The rate is <strong>₹{perKmDisplay}/km</strong> as per the {city.state} Motor Vehicles Department ({city.tariffDate}). The minimum fare is ₹{T.MIN_FARE} for the first {T.MIN_KM} km.</div>
+          <summary class="faq-q">What is the {city.name} {vehicleLabelShort} fare per km in {city.tariffDate}?</summary>
+          <div class="faq-a">{isTiered ? (<>The fare is <strong>tiered by distance</strong>, starting at ₹{minFareDisplay} and dropping to <strong>₹{perKmDisplay}/km</strong> for longer trips, as per the {city.state} Motor Vehicles Department ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>₹{perKmDisplay}/km</strong> as per the {city.state} Motor Vehicles Department ({city.tariffDate}). The minimum fare is ₹{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How do I know if my {city.name} auto meter is tampered?</summary>
+          <summary class="faq-q">How do I know if my {city.name} {vehicleLabelShort} meter is tampered?</summary>
           <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than ₹{T.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">What is the night surcharge for {city.name} autos?</summary>
+          <summary class="faq-q">What is the night surcharge for {city.name} {vehicleLabelShort}s?</summary>
           <div class="faq-a">A <strong>{nightPct}% night surcharge</strong> applies to all rides between <strong>{nightWindow}</strong>.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How do I complain about a tampered auto meter in {city.name}?</summary>
-          <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest RTO with the auto's number plate and trip details.</div>
+          <summary class="faq-q">How do I complain about a tampered {vehicleLabelShort} meter in {city.name}?</summary>
+          <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest RTO with the {vehicleLabelShort}'s number plate and trip details.</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Is MeterSahi? free to use?</summary>
@@ -455,7 +492,7 @@ const faqJsonLd = {
     <div class="container">
       <div class="complaint-inner">
         <div class="complaint-text">
-          <h2>Auto meter tampered? How to complain in {city.name}</h2>
+          <h2>{vehicleMeterLabel} meter tampered? How to complain in {city.name}</h2>
           <p>Every report helps clean up the system.</p>
         </div>
         <div class="complaint-options">

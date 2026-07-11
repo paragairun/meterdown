@@ -431,5 +431,115 @@
       }
     ],
     "helpline": "1800-233-1022"
+  },
+  "goa": {
+    "name": "Goa",
+    "slug": "goa",
+    "state": "Goa",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 15.4909,
+      "lng": 73.8278
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 14.9,
+        "lng": 73.7
+      },
+      "ne": {
+        "lat": 15.8,
+        "lng": 74.35
+      }
+    },
+    "tariffDate": "GoaMiles / 2021 gazette",
+    "tariff": {
+      "MIN_FARE": 22,
+      "MIN_KM": 1,
+      "RATE_PER_KM": 21.5,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1.35,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "Transport Dept Panaji",
+        "phone": "0832-2225606",
+        "email": ""
+      },
+      {
+        "label": "Transport Dept Margao",
+        "phone": "0832-2741962",
+        "email": ""
+      }
+    ],
+    "helpline": "0832-2225606"
+  },
+  "gangtok": {
+    "name": "Gangtok",
+    "slug": "gangtok",
+    "state": "Sikkim",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 27.3389,
+      "lng": 88.6065
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 27.28,
+        "lng": 88.55
+      },
+      "ne": {
+        "lat": 27.4,
+        "lng": 88.65
+      }
+    },
+    "tariffDate": "Sikkim Cab tariff",
+    "tariff": {
+      "BANDS": [
+        {
+          "upTo": 2,
+          "flatFare": 100
+        },
+        {
+          "upTo": 4,
+          "flatFare": 200
+        },
+        {
+          "upTo": 15,
+          "perKm": 40
+        },
+        {
+          "upTo": 50,
+          "perKm": 38
+        },
+        {
+          "upTo": 75,
+          "perKm": 33
+        },
+        {
+          "upTo": 999999,
+          "perKm": 24
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 2,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 22,
+      "NIGHT_END": 4,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "State Transport Authority",
+        "phone": "03592-202483",
+        "email": "secy-transport-skm@sikkim.gov.in"
+      }
+    ],
+    "helpline": "03592-202483"
   }
 }
