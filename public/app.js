@@ -18,6 +18,14 @@
 
 'use strict';
 
+/* ── Supabase (vehicle report storage) ──
+   The anon key below is meant to be public - it can only INSERT into
+   vehicle_reports (see supabase-schema.sql RLS policy), never read or
+   modify existing rows. Data is viewed/exported via the Supabase
+   dashboard, not through this key. */
+const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';   // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = 'sb_publishable_7GHLx872yuUQcn8lKcDBVw_ehC9Cx6e';
+
 /* ── State ── */
 let mapInstance        = null;
 let directionsRenderer = null;
@@ -252,9 +260,10 @@ function handleRoutesResult(route, isNight, luggage, actualFare, pickup, dropoff
   const dropLat    = leg && leg.endLocation   && leg.endLocation.latLng   ? leg.endLocation.latLng.latitude    : '';
   const dropLng    = leg && leg.endLocation   && leg.endLocation.latLng   ? leg.endLocation.latLng.longitude   : '';
 
-  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden };
-  renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden,
+  lastRouteData = { distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden, pickupName: pickup, dropName: dropoff };
+  const fare = renderResults(distKm, totalMinutes, waitMinutes, isNight, luggage, actualFare, isWaitOverridden,
     pickup, dropoff, pickupLat, pickupLng, dropLat, dropLng);
+  if (fare) lastRouteData.calculatedFare = fare.subtotal;
 
   // Draw route on map using the encoded polyline from the response
   if (mapInstance && directionsRenderer && route.polyline && route.polyline.encodedPolyline) {
@@ -399,6 +408,8 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
       pickupLat, pickupLng, dropLat, dropLng
     );
   }
+
+  return fare;
 }
 
 /* ════════════════════════════════════════════
@@ -425,6 +436,7 @@ window.handleFeedback = function (answer) {
       reportSection.style.display = 'block';
       document.getElementById('report-confirmation').style.display = 'none';
       document.getElementById('btn-submit-report').style.display = 'flex';
+      document.getElementById('btn-submit-report').disabled = false;
       initVehicleSelects();
       reportSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -441,11 +453,50 @@ window.submitReport = function () {
   const s4 = document.getElementById('vn-number-input').value;
   if (!s1 || !s2 || !s3 || !s4) { alert('Please select all four parts of the number plate.'); return; }
   const plateNo = `${s1} ${s2} ${s3} ${s4}`;
-  console.log('Report:', plateNo, CITY_SLUG, lastRouteData);
-  document.getElementById('btn-submit-report').style.display = 'none';
+
+  const btn  = document.getElementById('btn-submit-report');
   const conf = document.getElementById('report-confirmation');
-  conf.innerHTML = `<i class="ti ti-circle-check"></i> Report for <strong>${plateNo}</strong> submitted. Thank you!`;
-  conf.style.display = 'flex';
+  btn.disabled = true;
+
+  const rd = lastRouteData || {};
+  const payload = {
+    city_slug:           CITY_SLUG,
+    vehicle_type:        vehicleType,
+    plate_full:           plateNo,
+    plate_state:          s1,
+    plate_district:       s2,
+    plate_series:         s3,
+    plate_number:         s4,
+    pickup_name:          rd.pickupName || null,
+    dropoff_name:         rd.dropName || null,
+    distance_km:          rd.distKm != null ? Math.round(rd.distKm * 100) / 100 : null,
+    calculated_fare:      rd.calculatedFare != null ? Math.round(rd.calculatedFare) : null,
+    actual_fare_charged:  rd.actualFare != null ? Math.round(rd.actualFare) : null,
+    is_night:             !!rd.isNight,
+  };
+
+  fetch(`${SUPABASE_URL}/rest/v1/vehicle_reports`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(payload),
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('Supabase insert failed: ' + res.status);
+      btn.style.display = 'none';
+      conf.innerHTML = `<i class="ti ti-circle-check"></i> Report for <strong>${plateNo}</strong> submitted. Thank you!`;
+      conf.style.display = 'flex';
+    })
+    .catch(function (err) {
+      console.warn('Report submission error:', err);
+      btn.disabled = false;
+      conf.innerHTML = `<i class="ti ti-alert-circle"></i> Couldn't submit right now - please try again in a moment.`;
+      conf.style.display = 'flex';
+    });
 };
 
 /* ════════════════════════════════════════════
@@ -519,7 +570,10 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitO
     const wait = parseFloat(document.getElementById('manual-wait').value) || 0;
     if (isNaN(km)||km<=0){alert('Enter a valid distance.');return;}
     const isOverridden = waitOverride !== null && waitOverride !== undefined;
-    renderResults(km, (km/20)*60+wait, wait, isNight, luggage, actualFare, isOverridden);
+    const totalMin = (km/20)*60+wait;
+    lastRouteData = { distKm: km, totalMinutes: totalMin, waitMinutes: wait, isNight, luggage, actualFare, isWaitOverridden: isOverridden, pickupName: pickup, dropName: dropoff };
+    const fare = renderResults(km, totalMin, wait, isNight, luggage, actualFare, isOverridden);
+    if (fare) lastRouteData.calculatedFare = fare.subtotal;
   };
 }
 
