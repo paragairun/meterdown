@@ -395,13 +395,75 @@ const CITIES = {
     ],
     helpline: '03592-202483',
   },
+
+  // Same statewide Maharashtra MVD auto-rickshaw (CNG) tariff card as
+  // Mumbai/Pune (w.e.f. 1 Feb 2025) - the tariff card itself is issued
+  // once for the whole state, not per-city, and no Nagpur-specific
+  // deviation notification was found. One low-quality aggregator site
+  // showed different numbers (Rs18 min / Rs11/km) but its own citation
+  // linked to a Mysuru (Karnataka) news article as its "source" for
+  // Nagpur data - a clear sign of templated/unreliable content, so
+  // discounted. Revisit if a genuine Nagpur-specific notification turns up.
+  nagpur: {
+    name:         'Nagpur',
+    slug:         'nagpur',
+    state:        'Maharashtra',
+    mapCenter:    { lat: 21.1458, lng: 79.0882 },
+    acBounds:     { sw: { lat: 21.00, lng: 78.95 }, ne: { lat: 21.30, lng: 79.20 } },
+    tariffDate:   '1 Feb 2025',
+    tariff: {
+      MIN_FARE:          26,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       17.14,
+      WAIT_RATE_PER_MIN: 1.714,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTO Nagpur City (MH-31)',  phone: '0712-2560781', email: 'rto.31-mh@gov.in' },
+      { label: 'RTO Nagpur Rural (MH-40)', phone: '0712-2728461', email: 'rto.40-mh@gov.in' },
+    ],
+    helpline: '1800-233-1922',
+  },
+
+  // Same statewide Maharashtra MVD auto-rickshaw (CNG) tariff card as
+  // Mumbai/Pune/Nagpur (w.e.f. 1 Feb 2025) - no Nashik-specific
+  // deviation notification found.
+  nashik: {
+    name:         'Nashik',
+    slug:         'nashik',
+    state:        'Maharashtra',
+    mapCenter:    { lat: 19.9975, lng: 73.7898 },
+    acBounds:     { sw: { lat: 19.85, lng: 73.65 }, ne: { lat: 20.15, lng: 73.95 } },
+    tariffDate:   '1 Feb 2025',
+    tariff: {
+      MIN_FARE:          26,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       17.14,
+      WAIT_RATE_PER_MIN: 1.714,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTO Nashik City (MH-15)', phone: '0253-2576001', email: 'rto-nashik@mahatranscom.in' },
+    ],
+    helpline: '1800-233-1922',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
 const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
-  'goa', 'gangtok',
+  'goa', 'gangtok', 'nagpur', 'nashik',
 ];
 
 /* ════════════════════════════════════════════
@@ -412,10 +474,11 @@ const CITY_LIST = [
    ════════════════════════════════════════════ */
 
 var GEO_CITY_MAP = {
-  // Mumbai + suburbs. Maharashtra has two covered cities (Mumbai and
-  // Pune), so - unlike every other state below - it can't be resolved
-  // by region name alone. IP geolocation frequently returns a specific
-  // suburb/locality rather than "Mumbai" itself, so this list needs to
+  // Mumbai + suburbs. Maharashtra has four covered cities (Mumbai,
+  // Pune, Nagpur, and Nashik), so - unlike every other state below - it can't
+  // be resolved by region name alone. IP geolocation frequently returns
+  // a specific suburb/locality rather than "Mumbai" itself, so this
+  // list needs to
   // be broad rather than just the umbrella city name.
   'mumbai':        'mumbai',
   'navi mumbai':   'mumbai',
@@ -495,6 +558,11 @@ var GEO_CITY_MAP = {
   'warje':         'pune',
   'shivajinagar':  'pune',
 
+  'nagpur':        'nagpur',
+
+  'nashik':        'nashik',
+  'nasik':         'nashik',
+
   'kochi':        'kochi',
   'ernakulam':    'kochi',
   'thrissur':     'kochi',
@@ -520,8 +588,8 @@ var GEO_CITY_MAP = {
 
 // Fallback for states where we cover exactly one city - safe to use
 // region alone since there's no ambiguity. (Maharashtra is excluded:
-// it has two covered cities, Mumbai and Pune, so it must be resolved
-// via GEO_CITY_MAP above instead.)
+// it has four covered cities (Mumbai, Pune, Nagpur, Nashik), so it must be
+// resolved via GEO_CITY_MAP above instead.)
 var GEO_REGION_MAP = {
   'delhi':          'delhi',
   'nct of delhi':   'delhi',
