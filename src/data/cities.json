@@ -541,5 +541,90 @@
       }
     ],
     "helpline": "03592-202483"
+  },
+  "nagpur": {
+    "name": "Nagpur",
+    "slug": "nagpur",
+    "state": "Maharashtra",
+    "mapCenter": {
+      "lat": 21.1458,
+      "lng": 79.0882
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 21,
+        "lng": 78.95
+      },
+      "ne": {
+        "lat": 21.3,
+        "lng": 79.2
+      }
+    },
+    "tariffDate": "1 Feb 2025",
+    "tariff": {
+      "MIN_FARE": 26,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 17.14,
+      "WAIT_RATE_PER_MIN": 1.714,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Nagpur City (MH-31)",
+        "phone": "0712-2560781",
+        "email": "rto.31-mh@gov.in"
+      },
+      {
+        "label": "RTO Nagpur Rural (MH-40)",
+        "phone": "0712-2728461",
+        "email": "rto.40-mh@gov.in"
+      }
+    ],
+    "helpline": "1800-233-1922"
+  },
+  "nashik": {
+    "name": "Nashik",
+    "slug": "nashik",
+    "state": "Maharashtra",
+    "mapCenter": {
+      "lat": 19.9975,
+      "lng": 73.7898
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 19.85,
+        "lng": 73.65
+      },
+      "ne": {
+        "lat": 20.15,
+        "lng": 73.95
+      }
+    },
+    "tariffDate": "1 Feb 2025",
+    "tariff": {
+      "MIN_FARE": 26,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 17.14,
+      "WAIT_RATE_PER_MIN": 1.714,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.9
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Nashik City (MH-15)",
+        "phone": "0253-2576001",
+        "email": "rto-nashik@mahatranscom.in"
+      }
+    ],
+    "helpline": "1800-233-1922"
   }
 }
