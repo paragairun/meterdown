@@ -200,7 +200,7 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
       <span class="rc-rec-icon">${vehicleIcon}</span>
       <div>
         <strong>${vehicleLabel} is cheapest</strong>
-        <p>The metered ${vehicleLabel.toLowerCase()} at ₹${autoFare} is cheaper than all app-based options. Stick with it!</p>
+        <p>The metered ${vehicleLabel.toLowerCase()} at ${CURRENCY}${autoFare} is cheaper than all app-based options. Stick with it!</p>
       </div>
     </div>`;
   } else {
@@ -209,7 +209,7 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
       <span class="rc-rec-icon">${cheapest.platform.logo}</span>
       <div>
         <strong>${cheapest.city.label} is cheaper</strong>
-        <p>Estimated ₹${cheapest.fare} — saves you ₹${saving} vs the metered ${vehicleLabel.toLowerCase()} fare of ₹${autoFare}.</p>
+        <p>Estimated ${CURRENCY}${cheapest.fare} — saves you ${CURRENCY}${saving} vs the metered ${vehicleLabel.toLowerCase()} fare of ${CURRENCY}${autoFare}.</p>
       </div>
     </div>`;
   }
@@ -225,7 +225,7 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
         </div>
         ${autoIsChest ? '<span class="rc-cheapest-tag">Cheapest</span>' : ''}
       </div>
-      <div class="rc-fare">₹${autoFare}</div>
+      <div class="rc-fare">${CURRENCY}${autoFare}</div>
       <div class="rc-fare-note">Correct meter fare · Official tariff</div>
       <div class="rc-surge-note"><i class="ti ti-info-circle"></i> No surge pricing. Government regulated.</div>
     </div>`;
@@ -238,7 +238,7 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
     const isCab    = vt === 'taxi' || c.type === 'mini' || c.type === 'go';
     const fareNote = vt === 'taxi'
       ? 'Estimated cab fare (base + per-km) · not linked to the taxi meter'
-      : `RTO meter rate + ₹${c.platformFee} platform fee · excl. surge`;
+      : `RTO meter rate + ${CURRENCY}${c.platformFee} platform fee · excl. surge`;
 
     cardsHTML += `
     <div class="rc-card${isWinner ? ' rc-card--winner' : ''}">
@@ -250,7 +250,7 @@ window.renderRideComparison = function(distKm, waitMin, autoFare, pickupName, dr
         </div>
         ${isWinner ? '<span class="rc-cheapest-tag">Cheapest</span>' : ''}
       </div>
-      <div class="rc-fare">₹${est.fare}</div>
+      <div class="rc-fare">${CURRENCY}${est.fare}</div>
       <div class="rc-fare-note">${fareNote}</div>
       <div class="rc-surge-note"><i class="ti ti-alert-triangle"></i> ${c.surge}</div>
       <a href="${deepLink}" target="_blank" rel="noopener" class="rc-open-btn" style="background:${p.color};color:${p.textColor||'#fff'}">

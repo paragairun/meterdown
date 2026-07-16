@@ -33,6 +33,11 @@ let mapReady           = false;
 let lastRouteData      = null;
 
 const CITY = CITIES[CITY_SLUG];
+// Same currency symbol the Astro-rendered parts of the page use - this
+// file (app.js) builds the fare breakdown/verdict/feedback text
+// dynamically after Calculate is clicked, so it needs its own copy of
+// this rather than inheriting the template's {currency} variable.
+const CURRENCY = CITY.currencySymbol || '₹';
 
 // Vehicle type toggle: 'auto' (default) or 'taxi'. Cities without a
 // taxiTariff (most, for now) simply never show the toggle, so this
@@ -411,49 +416,49 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
       verdictEl.innerHTML = `<div class="verdict--ok">
         <div class="verdict-emoji">✅</div>
         <div class="verdict-title">Meter looks correct</div>
-        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> — within ±₹${TARIFF.TOLERANCE} of the correct fare <strong>₹${fare.subtotal}</strong>.</div>
+        <div class="verdict-body">Driver charged <strong>${CURRENCY}${actualFare}</strong> — within ±${CURRENCY}${TARIFF.TOLERANCE} of the correct fare <strong>${CURRENCY}${fare.subtotal}</strong>.</div>
       </div>`;
     } else if (actualFare > high) {
       const pct = Math.round((diff / fare.subtotal) * 100);
       verdictEl.innerHTML = `<div class="verdict--tampered">
         <div class="verdict-emoji">🚨</div>
         <div class="verdict-title">Possible meter tampering</div>
-        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong> but correct fare is <strong>₹${fare.subtotal}</strong>. That's <span class="overcharge-amount">₹${diff} extra (${pct}% overcharge)</span>.</div>
+        <div class="verdict-body">Driver charged <strong>${CURRENCY}${actualFare}</strong> but correct fare is <strong>${CURRENCY}${fare.subtotal}</strong>. That's <span class="overcharge-amount">${CURRENCY}${diff} extra (${pct}% overcharge)</span>.</div>
       </div>`;
     } else {
       verdictEl.innerHTML = `<div class="verdict--neutral">
         <div class="verdict-emoji">ℹ️</div>
         <div class="verdict-title">Fare is lower than expected</div>
-        <div class="verdict-body">Driver charged <strong>₹${actualFare}</strong>, estimate is <strong>₹${fare.subtotal}</strong>. Driver may have taken a shorter route.</div>
+        <div class="verdict-body">Driver charged <strong>${CURRENCY}${actualFare}</strong>, estimate is <strong>${CURRENCY}${fare.subtotal}</strong>. Driver may have taken a shorter route.</div>
       </div>`;
     }
   } else {
     verdictEl.innerHTML = `<div class="verdict--neutral">
       <div class="verdict-emoji">🧮</div>
-      <div class="verdict-title">Correct fare: ₹${fare.subtotal}</div>
-      <div class="verdict-body">Acceptable range: <strong>₹${fare.subtotal - TARIFF.TOLERANCE} – ₹${fare.subtotal + TARIFF.TOLERANCE}</strong>.</div>
+      <div class="verdict-title">Correct fare: ${CURRENCY}${fare.subtotal}</div>
+      <div class="verdict-body">Acceptable range: <strong>${CURRENCY}${fare.subtotal - TARIFF.TOLERANCE} – ${CURRENCY}${fare.subtotal + TARIFF.TOLERANCE}</strong>.</div>
     </div>`;
   }
 
   // Breakdown
   const freeWait = TARIFF.WAIT_FREE_MINS || 0;
-  let rows = `<div class="breakdown-row"><span>Base fare (${distKm.toFixed(1)} km${distKm <= TARIFF.MIN_KM ? ', minimum' : ''})</span><span class="amount">₹${fare.base}</span></div>`;
+  let rows = `<div class="breakdown-row"><span>Base fare (${distKm.toFixed(1)} km${distKm <= TARIFF.MIN_KM ? ', minimum' : ''})</span><span class="amount">${CURRENCY}${fare.base}</span></div>`;
   if (fare.waitCharge > 0) {
-    rows += `<div class="breakdown-row"><span>Wait time (${waitMins}m ${waitSecs}s${freeWait > 0 ? `, first ${freeWait}m free` : ''})</span><span class="amount">₹${fare.waitCharge}</span></div>`;
+    rows += `<div class="breakdown-row"><span>Wait time (${waitMins}m ${waitSecs}s${freeWait > 0 ? `, first ${freeWait}m free` : ''})</span><span class="amount">${CURRENCY}${fare.waitCharge}</span></div>`;
   }
   if (fare.luggageCharge > 0) {
-    rows += `<div class="breakdown-row"><span>Luggage (${luggage} piece${luggage > 1 ? 's' : ''})</span><span class="amount">₹${fare.luggageCharge}</span></div>`;
+    rows += `<div class="breakdown-row"><span>Luggage (${luggage} piece${luggage > 1 ? 's' : ''})</span><span class="amount">${CURRENCY}${fare.luggageCharge}</span></div>`;
   }
   if (isNight && fare.nightAdd > 0) {
     const pct = Math.round((TARIFF.NIGHT_MULTIPLIER - 1) * 100);
-    rows += `<div class="breakdown-row"><span>Night surcharge (+${pct}%)</span><span class="amount">+₹${fare.nightAdd}</span></div>`;
+    rows += `<div class="breakdown-row"><span>Night surcharge (+${pct}%)</span><span class="amount">+${CURRENCY}${fare.nightAdd}</span></div>`;
   }
-  rows += `<div class="breakdown-row total-row"><span>Total correct fare</span><span class="amount">₹${fare.subtotal}</span></div>`;
+  rows += `<div class="breakdown-row total-row"><span>Total correct fare</span><span class="amount">${CURRENCY}${fare.subtotal}</span></div>`;
 
   document.getElementById('breakdown-box').innerHTML = `
     <div class="breakdown-title">Fare breakdown</div>
     ${rows}
-    <div class="fare-band-label">Tolerance band: ₹${fare.subtotal - TARIFF.TOLERANCE} – ₹${fare.subtotal + TARIFF.TOLERANCE}</div>`;
+    <div class="fare-band-label">Tolerance band: ${CURRENCY}${fare.subtotal - TARIFF.TOLERANCE} – ${CURRENCY}${fare.subtotal + TARIFF.TOLERANCE}</div>`;
 
   // Feedback
   const fb = document.getElementById('feedback-section');
@@ -461,7 +466,7 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
     fb.style.display = 'block';
     const fbQuestion = document.getElementById('feedback-question-text');
     if (fbQuestion) {
-      fbQuestion.textContent = `Did your fare NOT match ₹${fare.subtotal - TARIFF.TOLERANCE}–₹${fare.subtotal + TARIFF.TOLERANCE}?`;
+      fbQuestion.textContent = `Did your fare NOT match ${CURRENCY}${fare.subtotal - TARIFF.TOLERANCE}–${CURRENCY}${fare.subtotal + TARIFF.TOLERANCE}?`;
     }
     document.querySelectorAll('.feedback-btn').forEach(b => {
       b.classList.remove('selected', 'pulse');
