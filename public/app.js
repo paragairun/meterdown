@@ -532,12 +532,26 @@ window.handleFeedback = function (answer) {
 };
 
 window.submitReport = function () {
-  const s1 = document.getElementById('vn-state-input').value;
-  const s2 = document.getElementById('vn-district-input').value;
-  const s3 = document.getElementById('vn-series-input').value;
-  const s4 = document.getElementById('vn-number-input').value;
-  if (!s1 || !s2 || !s3 || !s4) { alert('Please select all four parts of the number plate.'); return; }
-  const plateNo = `${s1} ${s2} ${s3} ${s4}`;
+  // Indian cities render the 4-part structured plate selects; other
+  // cities render a single plain text field instead (see
+  // useIndianPlateFormat in CityLayout.astro). Detect which is present
+  // rather than hardcoding one path.
+  const stateInput = document.getElementById('vn-state-input');
+  let plateNo, plateState = null, plateDistrict = null, plateSeries = null, plateNumber = null;
+
+  if (stateInput) {
+    const s1 = stateInput.value;
+    const s2 = document.getElementById('vn-district-input').value;
+    const s3 = document.getElementById('vn-series-input').value;
+    const s4 = document.getElementById('vn-number-input').value;
+    if (!s1 || !s2 || !s3 || !s4) { alert('Please select all four parts of the number plate.'); return; }
+    plateNo = `${s1} ${s2} ${s3} ${s4}`;
+    plateState = s1; plateDistrict = s2; plateSeries = s3; plateNumber = s4;
+  } else {
+    const plainInput = document.getElementById('vn-plain-input');
+    plateNo = (plainInput && plainInput.value || '').trim();
+    if (!plateNo) { alert('Please enter the registration/plate number.'); return; }
+  }
 
   const btn  = document.getElementById('btn-submit-report');
   const conf = document.getElementById('report-confirmation');
@@ -548,10 +562,10 @@ window.submitReport = function () {
     city_slug:           CITY_SLUG,
     vehicle_type:        vehicleType,
     plate_full:           plateNo,
-    plate_state:          s1,
-    plate_district:       s2,
-    plate_series:         s3,
-    plate_number:         s4,
+    plate_state:          plateState,
+    plate_district:       plateDistrict,
+    plate_series:         plateSeries,
+    plate_number:         plateNumber,
     pickup_name:          rd.pickupName || null,
     dropoff_name:         rd.dropName || null,
     distance_km:          rd.distKm != null ? Math.round(rd.distKm * 100) / 100 : null,
