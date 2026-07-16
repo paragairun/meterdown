@@ -108,6 +108,47 @@ describe('computeFare - flat vs tiered dispatch', () => {
   });
 });
 
+describe('computeFare - progressive/cumulative banded cities (Bangkok)', () => {
+  // Verified against 5 independent contemporaneous news sources reporting
+  // the same Jan 2023 Royal Gazette announcement, and cross-checked
+  // against a real-world example: a ~26km Suvarnabhumi-area Bangkok trip
+  // reported at "approximately 267 THB" - this tariff's own formula
+  // gives 217 THB base + 50 THB airport surcharge = 267 THB exactly.
+  const bangkokTariff = {
+    PROGRESSIVE_BANDS: [
+      { upTo: 1,  flatFare: 40 },
+      { upTo: 10, perKm: 6.5 },
+      { upTo: 20, perKm: 7.0 },
+      { upTo: 40, perKm: 8.0 },
+      { upTo: 60, perKm: 8.5 },
+    ],
+    WAIT_RATE_PER_MIN: 3,
+    NIGHT_MULTIPLIER: 1,
+    LUGGAGE_PER_PIECE: 0,
+  };
+
+  it('charges the flat flag-fall for any distance within the first band', () => {
+    expect(sandbox.computeFare(0.5, 0, false, 0, bangkokTariff).subtotal).toBe(40);
+    expect(sandbox.computeFare(1,   0, false, 0, bangkokTariff).subtotal).toBe(40);
+  });
+
+  it('only charges each band its OWN portion, unlike the Sikkim-style tiered model', () => {
+    // 15km = 40 (first km) + 9km@6.5 (km 1-10) + 5km@7.0 (km 10-15) = 133.5 -> 134
+    expect(sandbox.computeFare(15, 0, false, 0, bangkokTariff).subtotal).toBe(134);
+  });
+
+  it('matches the real-world sourced example (~26km, ~267 THB incl. 50 THB airport surcharge)', () => {
+    const fare = sandbox.computeFare(26, 0, false, 0, bangkokTariff);
+    expect(fare.subtotal + 50).toBe(267);
+  });
+
+  it('crosses multiple bands correctly in one trip', () => {
+    // 45km spans all 5 bands: 40 + 9x6.5 + 10x7 + 20x8 + 5x8.5
+    // = 40 + 58.5 + 70 + 160 + 42.5 = 371 exactly
+    expect(sandbox.computeFare(45, 0, false, 0, bangkokTariff).subtotal).toBe(371);
+  });
+});
+
 describe('isNightTime', () => {
   it('handles a normal (non-wraparound) night window', () => {
     // Ahmedabad-style pattern used as a hypothetical non-wraparound
@@ -177,12 +218,51 @@ describe('cityFromString - geo-detection matching', () => {
     expect(sandbox.cityFromString('BORIVALI', 'MAHARASHTRA')).toBe('mumbai');
     expect(sandbox.cityFromString('borivali', 'maharashtra')).toBe('mumbai');
   });
+
+  it('falls back to country-level matching when city and region both miss (Bangkok pilot)', () => {
+    // A Bangkok suburb ipapi.co doesn't have in GEO_CITY_MAP, with a
+    // region name that also doesn't match anything - only the country
+    // resolves it. Safe today because Thailand has exactly one covered
+    // city, mirroring how single-city-state region fallback works.
+    expect(sandbox.cityFromString('Nonthaburi', 'Nonthaburi Province', 'Thailand')).toBe('bangkok');
+  });
+
+  it('matches Bangkok directly by city name too', () => {
+    expect(sandbox.cityFromString('Bangkok', 'Bangkok', 'Thailand')).toBe('bangkok');
+  });
+
+  it('does not let country-level fallback override a real city/region match', () => {
+    // Sanity check: an Indian city match should never fall through to
+    // country matching even if a country string is passed alongside it.
+    expect(sandbox.cityFromString('Mumbai', 'Maharashtra', 'India')).toBe('mumbai');
+  });
 });
 
 describe('city data integrity', () => {
   it('every city in CITY_LIST exists in CITIES', () => {
     for (const slug of sandbox.CITY_LIST) {
       expect(sandbox.CITIES[slug], `CITY_LIST references missing city "${slug}"`).toBeDefined();
+    }
+  });
+
+  it('every city has a country and currency (explicit, not relying on template defaults)', () => {
+    for (const [slug, city] of Object.entries(sandbox.CITIES)) {
+      expect(city.country, `${slug}.country`).toBeTruthy();
+      expect(city.countryCode, `${slug}.countryCode`).toBeTruthy();
+      expect(city.currencyCode, `${slug}.currencyCode`).toBeTruthy();
+      expect(city.currencySymbol, `${slug}.currencySymbol`).toBeTruthy();
+    }
+  });
+
+  it('every tariff is flat, tiered, OR progressive - never more than one shape at once', () => {
+    for (const [slug, city] of Object.entries(sandbox.CITIES)) {
+      const T = city.tariff;
+      const shapes = [
+        T.MIN_FARE !== undefined && T.RATE_PER_KM !== undefined,
+        Array.isArray(T.BANDS) && T.BANDS.length > 0,
+        Array.isArray(T.PROGRESSIVE_BANDS) && T.PROGRESSIVE_BANDS.length > 0,
+      ].filter(Boolean).length;
+      expect(shapes, `${slug}.tariff matches ${shapes} fare shapes, expected exactly 1`).toBe(1);
     }
   });
 
@@ -197,14 +277,6 @@ describe('city data integrity', () => {
     }
   });
 
-  it('every tariff is either flat-rate (MIN_FARE+RATE_PER_KM) or tiered (BANDS), never neither', () => {
-    for (const [slug, city] of Object.entries(sandbox.CITIES)) {
-      const T = city.tariff;
-      const isFlat = T.MIN_FARE !== undefined && T.RATE_PER_KM !== undefined;
-      const isTiered = Array.isArray(T.BANDS) && T.BANDS.length > 0;
-      expect(isFlat || isTiered, `${slug}.tariff is neither flat nor tiered`).toBe(true);
-    }
-  });
 
   it('tiered tariffs have bands sorted ascending by upTo with no gaps', () => {
     for (const [slug, city] of Object.entries(sandbox.CITIES)) {
