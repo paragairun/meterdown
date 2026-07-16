@@ -150,7 +150,12 @@ window.initMap = function () {
       new google.maps.LatLng(b.sw.lat, b.sw.lng),
       new google.maps.LatLng(b.ne.lat, b.ne.lng)
     );
-    const acOptions = { bounds, strictBounds: false, componentRestrictions: { country: 'in' } };
+    // Country restriction must match the CITY being searched, not the
+    // visitor's own location - was hardcoded to India for every city,
+    // silently breaking address search on Bangkok (and any future
+    // non-Indian city) since Thai addresses were being filtered out.
+    const acCountryCode = (CITY.countryCode || 'IN').toLowerCase();
+    const acOptions = { bounds, strictBounds: false, componentRestrictions: { country: acCountryCode } };
     new google.maps.places.Autocomplete(document.getElementById('pickup'),  acOptions);
     new google.maps.places.Autocomplete(document.getElementById('dropoff'), acOptions);
 
