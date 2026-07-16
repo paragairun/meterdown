@@ -23,8 +23,8 @@
    vehicle_reports (see supabase-schema.sql RLS policy), never read or
    modify existing rows. Data is viewed/exported via the Supabase
    dashboard, not through this key. */
-const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';   // e.g. https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = 'sb_publishable_7GHLx872yuUQcn8lKcDBVw_ehC9Cx6e';
+const SUPABASE_URL      = 'REPLACE_WITH_YOUR_SUPABASE_PROJECT_URL';   // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_SUPABASE_ANON_KEY';
 
 /* ── State ── */
 let mapInstance        = null;
@@ -156,7 +156,75 @@ window.initMap = function () {
     console.warn('Maps init error:', err);
     mapReady = false;
   }
+
+  // First action once Maps is ready: try to auto-fill pickup with the
+  // user's current location. Falls back silently to normal manual
+  // typing (the pre-existing flow) if permission is denied,
+  // unavailable, or times out - never blocks or shows an error, just
+  // leaves the field empty for the user to type into as before.
+  // Kept outside the try/catch above so a geolocation issue can never
+  // be mistaken for a map-init failure.
+  if (mapReady) {
+    try { attemptAutoLocate(); } catch (err) { console.warn('Auto-locate error:', err); }
+  }
 };
+
+/**
+ * Attempts to fill the pickup field with the user's current location.
+ * Called automatically once on map init, and re-triggerable any time
+ * via the location button next to the pickup field (e.g. if the user
+ * initially denied permission and changes their mind).
+ */
+window.attemptAutoLocate = function () {
+  const statusEl  = document.getElementById('locate-status');
+  const locateBtn = document.getElementById('locate-btn');
+
+  if (!navigator.geolocation) {
+    return; // No geolocation support - silent fallback to manual entry.
+  }
+
+  if (statusEl) { statusEl.textContent = 'Detecting your location…'; statusEl.className = 'locate-status locate-status--loading'; }
+  if (locateBtn) locateBtn.classList.add('locating');
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      if (locateBtn) locateBtn.classList.remove('locating');
+      reverseGeocodeAndFillPickup(pos.coords.latitude, pos.coords.longitude);
+    },
+    (err) => {
+      // Denied, unavailable, or timed out - fall back silently to the
+      // pre-existing manual-typing flow. Not an error state for the
+      // user, just means we couldn't skip a step for them this time.
+      console.warn('Geolocation unavailable:', err.message);
+      if (locateBtn) locateBtn.classList.remove('locating');
+      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'locate-status'; }
+    },
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+  );
+};
+
+function reverseGeocodeAndFillPickup(lat, lng) {
+  const statusEl = document.getElementById('locate-status');
+  if (!window.google || !google.maps || !google.maps.Geocoder) {
+    if (statusEl) { statusEl.textContent = ''; statusEl.className = 'locate-status'; }
+    return;
+  }
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+    if (status === 'OK' && results && results[0]) {
+      const pickupInput = document.getElementById('pickup');
+      if (pickupInput) pickupInput.value = results[0].formatted_address;
+      if (statusEl) { statusEl.textContent = 'Using your current location'; statusEl.className = 'locate-status locate-status--success'; }
+    } else {
+      // Reverse geocode failed - leave pickup empty for manual entry
+      // rather than showing a raw lat/lng or an error.
+      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'locate-status'; }
+    }
+  });
+}
+
+// Alias exposed to the "use current location" button next to the pickup field
+window.useCurrentLocation = window.attemptAutoLocate;
 
 window.handleMapError = function () { mapReady = false; };
 
@@ -383,6 +451,10 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
   const fb = document.getElementById('feedback-section');
   if (fb) {
     fb.style.display = 'block';
+    const fbQuestion = document.getElementById('feedback-question-text');
+    if (fbQuestion) {
+      fbQuestion.textContent = `Did your fare NOT match ₹${fare.subtotal - TARIFF.TOLERANCE}–₹${fare.subtotal + TARIFF.TOLERANCE}?`;
+    }
     document.querySelectorAll('.feedback-btn').forEach(b => {
       b.classList.remove('selected', 'pulse');
       const icon = b.querySelector('.ti');
