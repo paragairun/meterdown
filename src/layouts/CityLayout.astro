@@ -236,7 +236,13 @@ const faqJsonLd = {
       <div class="field-stack">
         <div class="field">
           <label for="pickup"><i class="ti ti-map-pin"></i> Pickup</label>
-          <input id="pickup" type="text" placeholder="Enter pickup location" autocomplete="off"/>
+          <div class="input-with-action">
+            <input id="pickup" type="text" placeholder="Enter pickup location" autocomplete="off"/>
+            <button type="button" class="locate-btn" id="locate-btn" onclick="useCurrentLocation()" title="Use my current location" aria-label="Use my current location">
+              <i class="ti ti-current-location"></i>
+            </button>
+          </div>
+          <span class="locate-status" id="locate-status"></span>
         </div>
         <div class="route-connector">
           <span class="connector-dot"></span>
@@ -349,10 +355,10 @@ const faqJsonLd = {
 
         <!-- Feedback -->
         <div id="feedback-section" class="feedback-section" style="display:none">
-          <div class="feedback-question"><i class="ti ti-message-circle"></i><span>Did your fare match this calculation?</span></div>
+          <div class="feedback-question"><i class="ti ti-message-circle"></i><span id="feedback-question-text">Did your fare NOT match this calculation?</span></div>
           <div class="feedback-btns">
-            <button class="feedback-btn feedback-btn--yes" onclick="handleFeedback('yes')"><i class="ti ti-thumb-up"></i> Yes, it matched</button>
-            <button class="feedback-btn feedback-btn--no"  onclick="handleFeedback('no')"><i class="ti ti-thumb-down"></i> No, it didn't</button>
+            <button class="feedback-btn feedback-btn--no" onclick="handleFeedback('no')"><i class="ti ti-alert-triangle"></i> Report this vehicle</button>
+            <button class="feedback-btn feedback-btn--yes" onclick="handleFeedback('yes')"><i class="ti ti-check"></i> It matched, no need to report</button>
           </div>
           <div id="feedback-thanks" class="feedback-thanks" style="display:none">
             <i class="ti ti-circle-check"></i> Thanks for confirming! This helps us calibrate better.
