@@ -48,7 +48,7 @@ export function loadCitiesJs() {
   // by name in further code run in the same context though, so we pull
   // them out explicitly here.
   const extracted = vm.runInContext(
-    `({ CITIES, CITY_LIST, GEO_CITY_MAP, GEO_REGION_MAP })`,
+    `({ CITIES, CITY_LIST, GEO_CITY_MAP, GEO_REGION_MAP, GEO_COUNTRY_MAP })`,
     sandbox
   );
 
