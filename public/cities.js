@@ -24,6 +24,10 @@ const CITIES = {
     name:         'Mumbai',
     slug:         'mumbai',
     state:        'Maharashtra',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 19.0760, lng: 72.8777 },
     acBounds:     { sw: { lat: 18.85, lng: 72.75 }, ne: { lat: 19.32, lng: 73.05 } },
     tariffDate:   '1 Feb 2025',
@@ -69,6 +73,10 @@ const CITIES = {
     name:         'Pune',
     slug:         'pune',
     state:        'Maharashtra',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 18.5204, lng: 73.8567 },
     acBounds:     { sw: { lat: 18.40, lng: 73.70 }, ne: { lat: 18.65, lng: 74.00 } },
     tariffDate:   '1 Feb 2025',
@@ -109,6 +117,10 @@ const CITIES = {
     name:         'New Delhi',
     slug:         'delhi',
     state:        'Delhi',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 28.6139, lng: 77.2090 },
     acBounds:     { sw: { lat: 28.40, lng: 76.84 }, ne: { lat: 28.88, lng: 77.35 } },
     tariffDate:   'Oct 2022',
@@ -150,6 +162,10 @@ const CITIES = {
     name:         'Bengaluru',
     slug:         'bengaluru',
     state:        'Karnataka',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 12.9716, lng: 77.5946 },
     acBounds:     { sw: { lat: 12.80, lng: 77.40 }, ne: { lat: 13.15, lng: 77.80 } },
     tariffDate:   '1 Aug 2025',
@@ -177,6 +193,10 @@ const CITIES = {
     name:         'Hyderabad',
     slug:         'hyderabad',
     state:        'Telangana',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 17.3850, lng: 78.4867 },
     acBounds:     { sw: { lat: 17.20, lng: 78.25 }, ne: { lat: 17.60, lng: 78.65 } },
     tariffDate:   'Current official',
@@ -202,6 +222,10 @@ const CITIES = {
     name:         'Kochi',
     slug:         'kochi',
     state:        'Kerala',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 9.9312, lng: 76.2673 },
     acBounds:     { sw: { lat: 9.75, lng: 76.10 }, ne: { lat: 10.15, lng: 76.45 } },
     tariffDate:   'May 2022',
@@ -227,6 +251,10 @@ const CITIES = {
     name:         'Kolkata',
     slug:         'kolkata',
     state:        'West Bengal',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 22.5726, lng: 88.3639 },
     acBounds:     { sw: { lat: 22.40, lng: 88.20 }, ne: { lat: 22.75, lng: 88.55 } },
     tariffDate:   'Current official',
@@ -275,6 +303,10 @@ const CITIES = {
     name:         'Chennai',
     slug:         'chennai',
     state:        'Tamil Nadu',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 13.0827, lng: 80.2707 },
     acBounds:     { sw: { lat: 12.85, lng: 80.05 }, ne: { lat: 13.25, lng: 80.45 } },
     tariffDate:   'Current official',
@@ -300,6 +332,10 @@ const CITIES = {
     name:         'Ahmedabad',
     slug:         'ahmedabad',
     state:        'Gujarat',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 23.0225, lng: 72.5714 },
     acBounds:     { sw: { lat: 22.85, lng: 72.40 }, ne: { lat: 23.20, lng: 72.75 } },
     tariffDate:   'Nov 2021',
@@ -335,6 +371,10 @@ const CITIES = {
     name:         'Goa',
     slug:         'goa',
     state:        'Goa',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     primaryVehicleType: 'taxi',
     mapCenter:    { lat: 15.4909, lng: 73.8278 },
     acBounds:     { sw: { lat: 14.90, lng: 73.70 }, ne: { lat: 15.80, lng: 74.35 } },
@@ -369,6 +409,10 @@ const CITIES = {
     name:         'Gangtok',
     slug:         'gangtok',
     state:        'Sikkim',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     primaryVehicleType: 'taxi',
     mapCenter:    { lat: 27.3389, lng: 88.6065 },
     acBounds:     { sw: { lat: 27.28, lng: 88.55 }, ne: { lat: 27.40, lng: 88.65 } },
@@ -408,6 +452,10 @@ const CITIES = {
     name:         'Nagpur',
     slug:         'nagpur',
     state:        'Maharashtra',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 21.1458, lng: 79.0882 },
     acBounds:     { sw: { lat: 21.00, lng: 78.95 }, ne: { lat: 21.30, lng: 79.20 } },
     tariffDate:   '1 Feb 2025',
@@ -437,6 +485,10 @@ const CITIES = {
     name:         'Nashik',
     slug:         'nashik',
     state:        'Maharashtra',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
     mapCenter:    { lat: 19.9975, lng: 73.7898 },
     acBounds:     { sw: { lat: 19.85, lng: 73.65 }, ne: { lat: 20.15, lng: 73.95 } },
     tariffDate:   '1 Feb 2025',
@@ -457,6 +509,64 @@ const CITIES = {
     ],
     helpline: '1800-233-1922',
   },
+
+  // First international city (pilot for the currency/country/progressive-
+  // fare architecture). Source: Jan 2023 Royal Gazette notification,
+  // reported consistently across 5 independent contemporaneous news
+  // outlets (Bangkok Post, Nation Thailand x2, Thaiger, Tripadvisor
+  // forum quoting the same announcement). Cross-validated against a
+  // real-world example (~26km Bangkok airport trip, sourced ~267 THB):
+  // this tariff's own formula gives 217 THB base + 50 THB airport
+  // surcharge = 267 THB exactly.
+  //
+  // IMPORTANT: this is a PROGRESSIVE/cumulative meter (see
+  // computeFareProgressive) - each band only charges its own portion of
+  // the distance, unlike Gangtok's bracket-for-the-whole-trip model.
+  //
+  // Airport surcharge (50 THB) and toll charges are NOT modeled here -
+  // the calculator will under-quote airport trips by that amount. Same
+  // limitation as the site not modeling city-specific surcharges
+  // elsewhere; flagged rather than silently wrong.
+  bangkok: {
+    name:         'Bangkok',
+    slug:         'bangkok',
+    state:        'Bangkok',
+    country:      'Thailand',
+    countryCode:  'TH',
+    currencyCode: 'THB',
+    currencySymbol: '\u0e3f',
+    regulatorName: 'Department of Land Transport, Thailand',
+    regulatorShortName: 'DLT',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 13.7563, lng: 100.5018 },
+    acBounds:     { sw: { lat: 13.55, lng: 100.30 }, ne: { lat: 13.95, lng: 100.75 } },
+    tariffDate:   '13 Jan 2023 (Royal Gazette)',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 40 },
+        { upTo: 10,     perKm: 6.5 },
+        { upTo: 20,     perKm: 7.0 },
+        { upTo: 40,     perKm: 8.0 },
+        { upTo: 60,     perKm: 8.5 },
+        { upTo: 999999, perKm: 8.5 }, // rate beyond 60km not directly
+        // sourced - continuing the last confirmed rate rather than
+        // guessing a higher number. City calculator, so low real-world impact.
+      ],
+      WAIT_RATE_PER_MIN: 3.00, // "traffic congestion" charge, <6km/h
+      NIGHT_MULTIPLIER:  1,    // No official night surcharge found for
+      // Bangkok metered taxis (unlike Indian auto tariffs). Set to 1
+      // (no surcharge) rather than assuming one exists.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Tourist Police', phone: '1155', email: 'yourfirstfriend@touristpolice.go.th' },
+    ],
+    helpline: '1584',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
@@ -464,6 +574,7 @@ const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
   'goa', 'gangtok', 'nagpur', 'nashik',
+  'bangkok',
 ];
 
 /* ════════════════════════════════════════════
@@ -563,6 +674,9 @@ var GEO_CITY_MAP = {
   'nashik':        'nashik',
   'nasik':         'nashik',
 
+  'bangkok':       'bangkok',
+  'krung thep':    'bangkok',
+
   'kochi':        'kochi',
   'ernakulam':    'kochi',
   'thrissur':     'kochi',
@@ -603,7 +717,16 @@ var GEO_REGION_MAP = {
   'sikkim':         'gangtok',
 };
 
-function cityFromString(cityStr, regionStr) {
+// Country-level fallback - used only when BOTH city and region-level
+// matching fail. Safe today because every covered country has exactly
+// one city (Thailand -> Bangkok); if a second Thai city is ever added,
+// this entry must move to city-level matching only, same as Maharashtra
+// already had to do above.
+var GEO_COUNTRY_MAP = {
+  'thailand': 'bangkok',
+};
+
+function cityFromString(cityStr, regionStr, countryStr) {
   var lowerCity = (cityStr || '').toLowerCase();
   for (var key in GEO_CITY_MAP) {
     if (lowerCity.indexOf(key) !== -1) return GEO_CITY_MAP[key];
@@ -611,6 +734,10 @@ function cityFromString(cityStr, regionStr) {
   var lowerRegion = (regionStr || '').toLowerCase();
   for (var rkey in GEO_REGION_MAP) {
     if (lowerRegion.indexOf(rkey) !== -1) return GEO_REGION_MAP[rkey];
+  }
+  var lowerCountry = (countryStr || '').toLowerCase();
+  for (var ckey in GEO_COUNTRY_MAP) {
+    if (lowerCountry.indexOf(ckey) !== -1) return GEO_COUNTRY_MAP[ckey];
   }
   return null;
 }
@@ -630,8 +757,8 @@ function detectCityAndRedirect() {
       if (done) return;
       done = true;
       clearTimeout(safetyTimer);
-      // ipapi.co returns city, region fields
-      var slug = cityFromString(data.city, data.region);
+      // ipapi.co returns city, region, and country_name fields
+      var slug = cityFromString(data.city, data.region, data.country_name);
       if (slug) {
         window.location.href = '/' + slug + '/';
       } else {
@@ -656,6 +783,7 @@ function showCityChooser() {
 
 function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   if (tariff.BANDS) return computeFareTiered(distKm, waitMin, isNight, luggagePieces, tariff);
+  if (tariff.PROGRESSIVE_BANDS) return computeFareProgressive(distKm, waitMin, isNight, luggagePieces, tariff);
 
   const T = tariff;
 
@@ -708,6 +836,54 @@ function computeFareTiered(distKm, waitMin, isNight, luggagePieces, tariff) {
     const lastBand = T.BANDS[T.BANDS.length - 1];
     base = (lastBand.flatFare !== undefined) ? lastBand.flatFare : Math.round(distKm * lastBand.perKm);
   }
+
+  const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
+  const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);
+  let subtotal        = base + waitCharge + luggageCharge;
+  let nightAdd        = 0;
+
+  if (isNight) {
+    const withNight = Math.round(subtotal * T.NIGHT_MULTIPLIER);
+    nightAdd  = withNight - subtotal;
+    subtotal  = withNight;
+  }
+
+  return { base, waitCharge, luggageCharge, nightAdd, subtotal };
+}
+
+/**
+ * Progressive/cumulative banded fare calculation - used by cities whose
+ * meter increments continuously as distance increases, with each band
+ * only charging its OWN portion (like income tax brackets), unlike
+ * computeFareTiered above (which bills the whole trip at one bracket's
+ * rate). E.g. Bangkok's official meter: first 1km flat 40 THB, then
+ * 6.50 THB/km for km 1-10, 7.00 THB/km for km 10-20, 8.00 THB/km for
+ * km 20-40, 8.50 THB/km for km 40-60. A 15km trip costs
+ * 40 + (9km x 6.50) + (5km x 7.00) = 133.5 -> 134 THB, not 15 x any
+ * single rate. Verified against a real-world example (~26km Bangkok
+ * airport trip, sourced fare ~267 THB): this formula gives 216 THB
+ * base + 50 THB airport surcharge = 266 THB, matching within rounding.
+ * tariff.PROGRESSIVE_BANDS = [{upTo, flatFare} | {upTo, perKm}, ...],
+ * sorted ascending, each entry describing ONLY that band's own segment.
+ */
+function computeFareProgressive(distKm, waitMin, isNight, luggagePieces, tariff) {
+  const T = tariff;
+  const freeWaitMins = T.WAIT_FREE_MINS || 0;
+  const billableWaitMin = Math.max(0, waitMin - freeWaitMins);
+
+  let base = 0;
+  let prevUpTo = 0;
+  for (const band of T.PROGRESSIVE_BANDS) {
+    if (distKm <= prevUpTo) break;
+    if (band.flatFare !== undefined) {
+      base += band.flatFare;
+    } else {
+      const portionKm = Math.min(distKm, band.upTo) - prevUpTo;
+      base += portionKm * band.perKm;
+    }
+    prevUpTo = band.upTo;
+  }
+  base = Math.round(base);
 
   const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
   const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);

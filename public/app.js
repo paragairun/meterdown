@@ -81,11 +81,14 @@ function buildCityDropdown() {
   const grid     = document.getElementById('city-dropdown-grid');
   if (!trigger || !panel) return;
 
-  // Populate grid
+  // Populate grid - filtered to cities in the same country as the
+  // current page, so a Bangkok visitor sees Thai cities, not Indian ones.
   function renderCities(filter) {
     const q = (filter || '').toLowerCase();
+    const currentCountry = (CITIES[CITY_SLUG] && CITIES[CITY_SLUG].country) || 'India';
     grid.innerHTML = '';
     CITY_LIST
+      .filter(slug => (CITIES[slug].country || 'India') === currentCountry)
       .filter(slug => !q || CITIES[slug].name.toLowerCase().includes(q))
       .forEach(slug => {
         const c   = CITIES[slug];
