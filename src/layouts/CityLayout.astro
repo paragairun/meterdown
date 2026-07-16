@@ -29,6 +29,12 @@ interface City {
   slug: string;
   name: string;
   state: string;
+  country?: string;         // default 'India' when omitted
+  countryCode?: string;     // ISO 3166-1 alpha-2, default 'IN'
+  currencyCode?: string;    // ISO 4217, default 'INR'
+  currencySymbol?: string;  // default '\u20b9'
+  regulatorName?: string;   // default '{state} Motor Vehicles Department'
+  regulatorShortName?: string; // default 'RTO'
   tariffDate: string;
   tariff: Tariff;
   taxiTariffDate?: string;
@@ -59,6 +65,7 @@ const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'auto';
 const vehicleMeterLabel = isTaxiPrimary ? 'Taxi' : 'Auto';
 
 const nightPct = Math.round((T.NIGHT_MULTIPLIER - 1) * 100);
+const hasNightSurcharge = T.NIGHT_MULTIPLIER > 1;
 function to12Hour(hour24: number): string {
   const period = hour24 < 12 ? 'AM' : 'PM';
   let hour12 = hour24 % 12;
@@ -66,19 +73,25 @@ function to12Hour(hour24: number): string {
   return `${hour12} ${period}`;
 }
 const nightWindow = `${to12Hour(T.NIGHT_START)} – ${to12Hour(T.NIGHT_END)}`;
+const currency = city.currencySymbol || '\u20b9';
+const regulatorName = city.regulatorName || `${city.state} Motor Vehicles Department`;
+const regulatorShortName = city.regulatorShortName || 'RTO';
 const isTiered = !!T.BANDS;
-const bands = isTiered ? T.BANDS! : [];
+const isProgressive = !!T.PROGRESSIVE_BANDS;
+const isBanded = isTiered || isProgressive;
+const bands = isTiered ? T.BANDS! : (isProgressive ? T.PROGRESSIVE_BANDS! : []);
 
 // Display values: for flat-rate cities these read directly off the tariff.
-// For tiered cities (bands), there's no single "per km rate" - we show the
-// first band's flat fare as "starting fare" and the longest-distance band's
-// rate as the "from ₹X/km" headline, with the full band table shown separately.
-const minFareDisplay = isTiered ? bands[0].flatFare : T.MIN_FARE;
-const perKmDisplay = isTiered ? bands[bands.length - 1].perKm!.toFixed(2) : T.RATE_PER_KM.toFixed(2);
+// For banded cities (tiered or progressive), there's no single "per km rate" -
+// we show the first band's flat fare as "starting fare" and the
+// longest-distance band's rate as the "from <currency>X/km" headline,
+// with the full band table shown separately.
+const minFareDisplay = isBanded ? (bands[0].flatFare ?? bands[0].perKm) : T.MIN_FARE;
+const perKmDisplay = isBanded ? bands[bands.length - 1].perKm!.toFixed(2) : T.RATE_PER_KM.toFixed(2);
 const waitDisplay = T.WAIT_RATE_PER_MIN.toFixed(2);
-const rateHeadline = isTiered
-  ? `From ₹${bands[bands.length - 1].perKm}/km (tiered by distance)`
-  : `₹${perKmDisplay}/km`;
+const rateHeadline = isBanded
+  ? `From ${currency}${bands[bands.length - 1].perKm}/km (tiered by distance)`
+  : `${currency}${perKmDisplay}/km`;
 
 const title = `${city.name} ${vehicleLabel} Fare Calculator — Check Meter Tampering | MeterSahi?`;
 const ogTitle = `${city.name} ${vehicleMeterLabel} Fare Calculator — Is Your Meter Tampered? | MeterSahi?`;
@@ -105,9 +118,9 @@ const faqJsonLd = {
       name: `What is the ${city.name} ${vehicleLabelShort} fare per km in ${city.tariffDate}?`,
       acceptedAnswer: {
         "@type": "Answer",
-        text: isTiered
-          ? `The ${city.name} ${vehicleLabelShort} fare starts at ₹${minFareDisplay} and is tiered by distance (down to ₹${perKmDisplay}/km for longer trips), per official ${city.state} tariff as of ${city.tariffDate}.`
-          : `The ${city.name} ${vehicleLabelShort} fare is ₹${perKmDisplay}/km, with a minimum fare of ₹${minFareDisplay} per official ${city.state} tariff as of ${city.tariffDate}.`,
+        text: isBanded
+          ? `The ${city.name} ${vehicleLabelShort} fare starts at ${currency}${minFareDisplay} and is tiered by distance (down to ${currency}${perKmDisplay}/km for longer trips), per official ${city.state} tariff as of ${city.tariffDate}.`
+          : `The ${city.name} ${vehicleLabelShort} fare is ${currency}${perKmDisplay}/km, with a minimum fare of ${currency}${minFareDisplay} per official ${city.state} tariff as of ${city.tariffDate}.`,
       },
     },
     {
@@ -115,7 +128,7 @@ const faqJsonLd = {
       name: `How do I know if my ${city.name} ${vehicleLabelShort} meter is tampered?`,
       acceptedAnswer: {
         "@type": "Answer",
-        text: `Use MeterSahi? — enter your pickup and drop and the fare charged. If the driver charges more than ₹${T.TOLERANCE} above the calculated correct fare, tampering is likely.`,
+        text: `Use MeterSahi? — enter your pickup and drop and the fare charged. If the driver charges more than ${currency}${T.TOLERANCE} above the calculated correct fare, tampering is likely.`,
       },
     },
   ],
@@ -216,7 +229,7 @@ const faqJsonLd = {
         <span class="hero-chip"><i class="ti ti-map-pin"></i> Live Google Maps routing</span>
         <span class="hero-chip"><i class="ti ti-shield-check"></i> Detects tampered meters</span>
         <span class="hero-chip"><i class="ti ti-clock"></i> Wait time calculated</span>
-        <span class="hero-chip"><i class="ti ti-moon"></i> Night surcharge +{nightPct}%</span>
+        {hasNightSurcharge && <span class="hero-chip"><i class="ti ti-moon"></i> Night surcharge +{nightPct}%</span>}
       </div>
     </div>
   </section>
@@ -266,7 +279,7 @@ const faqJsonLd = {
           <label for="ride-time"><i class="ti ti-sun"></i> Time of ride</label>
           <select id="ride-time">
             <option value="day">Day (5 AM to 12 AM)</option>
-            <option value="night">Night — {nightWindow} (+{nightPct}%)</option>
+            <option value="night">Night — {nightWindow}{hasNightSurcharge && ` (+${nightPct}%)`}</option>
           </select>
         </div>
         <div class="field">
@@ -311,11 +324,11 @@ const faqJsonLd = {
       </div>
       <div class="collapsible-content" id="driver-ask-content">
       <div class="field actual-fare-field">
-        <label for="actual-fare"><i class="ti ti-receipt"></i> Meter reading (₹)
+        <label for="actual-fare"><i class="ti ti-receipt"></i> Meter reading ({currency})
           <span class="label-hint">Leave blank to just see the correct fare</span>
         </label>
         <div class="rupee-input">
-          <span class="rupee-symbol">₹</span>
+          <span class="rupee-symbol">{currency}</span>
           <input id="actual-fare" type="number" min="0" placeholder="e.g. 85"/>
         </div>
       </div>
@@ -339,10 +352,12 @@ const faqJsonLd = {
         <div class="fare-card-preview">
           <p class="fare-card-title">{city.name} {vehicleLabelShort} tariff — {city.tariffDate}</p>
           <div class="fare-card-grid">
-            <div class="fare-card-item"><span class="fc-label">{isTiered ? 'Starts at' : 'Min. fare'}</span><span class="fc-value">₹{minFareDisplay}</span></div>
-            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">₹{perKmDisplay}</span></div>
-            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">₹{waitDisplay}</span></div>
-            <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{nightPct}%</span></div>
+            <div class="fare-card-item"><span class="fc-label">{isBanded ? 'Starts at' : 'Min. fare'}</span><span class="fc-value">{currency}{minFareDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">{currency}{perKmDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">{currency}{waitDisplay}</span></div>
+            {hasNightSurcharge
+              ? <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{nightPct}%</span></div>
+              : <div class="fare-card-item"><span class="fc-label">Tolerance</span><span class="fc-value">±{currency}{T.TOLERANCE}</span></div>}
           </div>
         </div>
       </div>
@@ -426,8 +441,8 @@ const faqJsonLd = {
       <div class="how-grid">
         <div class="how-card"><div class="how-icon"><i class="ti ti-map-2"></i></div><h3>Live route via Google Maps</h3><p>We fetch your exact route with real-time {city.name} traffic to get accurate distance and journey time.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-traffic-cone"></i></div><h3>Wait time from traffic delay</h3><p>Traffic delay × 0.9 estimates genuine standstill time — the portion that accrues meter waiting charges.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>{rateHeadline} + ₹{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±₹{T.TOLERANCE} tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond ₹{T.TOLERANCE} are flagged as tampering.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>{rateHeadline} + {currency}{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±{currency}{T.TOLERANCE} tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond {currency}{T.TOLERANCE} are flagged as tampering.</p></div>
       </div>
     </div>
   </section>
@@ -436,28 +451,31 @@ const faqJsonLd = {
   <section class="tariff-section" id="tariff">
     <div class="container" data-nosnippet>
       <h2 class="section-heading">{city.name} {vehicleLabel} Fare Chart {city.tariffDate}</h2>
-      <p class="section-sub">Official rates as per {city.state} Motor Vehicles Department — <strong>{city.tariffDate}</strong></p>
+      <p class="section-sub">Official rates as per {regulatorName} — <strong>{city.tariffDate}</strong></p>
       <div class="tariff-table-wrap">
         <table class="tariff-table">
           <thead><tr><th>Component</th><th>Rate</th><th>Notes</th></tr></thead>
           <tbody>
-            {isTiered ? (
+            {isBanded ? (
               bands.map((band, i) => {
                 const prevUpTo = i === 0 ? 0 : bands[i - 1].upTo;
                 const range = band.upTo >= 99999 ? `${prevUpTo} km+` : `${prevUpTo} - ${band.upTo} km`;
-                const rate = band.flatFare !== undefined ? `₹${band.flatFare} flat` : `₹${band.perKm} / km`;
-                return <tr><td>Distance {range}</td><td>{rate}</td><td>{band.flatFare !== undefined ? 'Flat fare for this range' : 'Applied to full trip distance'}</td></tr>;
+                const rate = band.flatFare !== undefined ? `${currency}${band.flatFare} flat` : `${currency}${band.perKm} / km`;
+                const note = band.flatFare !== undefined
+                  ? 'Flat fare for this range'
+                  : (isProgressive ? 'Applies only to this portion of the trip' : 'Applied to full trip distance');
+                return <tr><td>Distance {range}</td><td>{rate}</td><td>{note}</td></tr>;
               })
             ) : (
               <>
-                <tr><td>Minimum fare</td><td>₹{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
-                <tr><td>Per km rate</td><td>₹{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+                <tr><td>Minimum fare</td><td>{currency}{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
+                <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
               </>
             )}
-            <tr><td>Waiting charge</td><td>₹{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
-            <tr><td>Night surcharge</td><td>+{nightPct}%</td><td>{nightWindow}</td></tr>
-            <tr><td>Luggage</td><td>₹{T.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
-            <tr><td>Tolerance band</td><td>±₹{T.TOLERANCE}</td><td>Acceptable meter rounding</td></tr>
+            <tr><td>Waiting charge</td><td>{currency}{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
+            {hasNightSurcharge && <tr><td>Night surcharge</td><td>+{nightPct}%</td><td>{nightWindow}</td></tr>}
+            <tr><td>Luggage</td><td>{currency}{T.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
+            <tr><td>Tolerance band</td><td>±{currency}{T.TOLERANCE}</td><td>Acceptable meter rounding</td></tr>
           </tbody>
         </table>
       </div>
@@ -471,19 +489,21 @@ const faqJsonLd = {
       <div class="faq-list">
         <details class="faq-item">
           <summary class="faq-q">What is the {city.name} {vehicleLabelShort} fare per km in {city.tariffDate}?</summary>
-          <div class="faq-a">{isTiered ? (<>The fare is <strong>tiered by distance</strong>, starting at ₹{minFareDisplay} and dropping to <strong>₹{perKmDisplay}/km</strong> for longer trips, as per the {city.state} Motor Vehicles Department ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>₹{perKmDisplay}/km</strong> as per the {city.state} Motor Vehicles Department ({city.tariffDate}). The minimum fare is ₹{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</div>
+          <div class="faq-a">{isBanded ? (<>The fare is <strong>tiered by distance</strong>, starting at {currency}{minFareDisplay} and dropping to <strong>{currency}{perKmDisplay}/km</strong> for longer trips, as per {regulatorName} ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>{currency}{perKmDisplay}/km</strong> as per {regulatorName} ({city.tariffDate}). The minimum fare is {currency}{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">How do I know if my {city.name} {vehicleLabelShort} meter is tampered?</summary>
-          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than ₹{T.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
+          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than {currency}{T.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
         </details>
+        {hasNightSurcharge && (
         <details class="faq-item">
           <summary class="faq-q">What is the night surcharge for {city.name} {vehicleLabelShort}s?</summary>
           <div class="faq-a">A <strong>{nightPct}% night surcharge</strong> applies to all rides between <strong>{nightWindow}</strong>.</div>
         </details>
+        )}
         <details class="faq-item">
           <summary class="faq-q">How do I complain about a tampered {vehicleLabelShort} meter in {city.name}?</summary>
-          <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest RTO with the {vehicleLabelShort}'s number plate and trip details.</div>
+          <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest {regulatorShortName} office with the {vehicleLabelShort}'s number plate and trip details.</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Is MeterSahi? free to use?</summary>
