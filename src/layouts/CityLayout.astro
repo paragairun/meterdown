@@ -76,6 +76,12 @@ const nightWindow = `${to12Hour(T.NIGHT_START)} – ${to12Hour(T.NIGHT_END)}`;
 const currency = city.currencySymbol || '\u20b9';
 const regulatorName = city.regulatorName || `${city.state} Motor Vehicles Department`;
 const regulatorShortName = city.regulatorShortName || 'RTO';
+// The 4-part State/District/Series/Number entry is specifically India's
+// RTO plate structure - meaningless for other countries' plates
+// (Thailand's format is completely different, for one). Rather than
+// guess at conventions for countries we haven't researched, non-Indian
+// cities get a plain free-text field instead of a fabricated structure.
+const useIndianPlateFormat = (city.countryCode || 'IN') === 'IN';
 const isTiered = !!T.BANDS;
 const isProgressive = !!T.PROGRESSIVE_BANDS;
 const isBanded = isTiered || isProgressive;
@@ -381,6 +387,7 @@ const faqJsonLd = {
           <div id="report-vehicle-section" class="report-vehicle-section" style="display:none">
             <div class="report-header"><i class="ti ti-alert-triangle"></i><span>Report this vehicle</span></div>
             <p class="report-subtext">Enter the {vehicleLabelShort}'s number plate to log this report.</p>
+            {useIndianPlateFormat ? (
             <div class="vehicle-number-row">
               <div class="vn-group"><label class="vn-label">State</label><div class="searchable-select" id="ss-state"><input class="ss-input" type="text" placeholder="MH" id="vn-state-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-state-dropdown"></div></div></div>
               <div class="vn-sep">–</div>
@@ -390,6 +397,14 @@ const faqJsonLd = {
               <div class="vn-sep">–</div>
               <div class="vn-group"><label class="vn-label">Number</label><div class="searchable-select" id="ss-number"><input class="ss-input" type="text" placeholder="1234" id="vn-number-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-number-dropdown"></div></div></div>
             </div>
+            ) : (
+            <div class="vehicle-number-row vehicle-number-row--plain">
+              <div class="field">
+                <label for="vn-plain-input" class="vn-label">{vehicleMeterLabel} registration / plate number</label>
+                <input type="text" id="vn-plain-input" placeholder="e.g. TX-1234" autocomplete="off"/>
+              </div>
+            </div>
+            )}
             <button class="btn-report" id="btn-submit-report" onclick="submitReport()"><i class="ti ti-send"></i> Submit report</button>
             <div id="report-confirmation" class="report-confirmation" style="display:none"><i class="ti ti-circle-check"></i> Report submitted. Thank you!</div>
           </div>
