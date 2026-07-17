@@ -567,7 +567,7 @@ const faqJsonLd = {
           <div class="complaint-card">
             <i class="ti ti-building-bank"></i>
             <span class="cc-label">{rto.label}</span>
-            <span class="cc-value">{rto.phone}</span>
+            <span class="cc-value">{rto.phone || 'Not published'}</span>
             <span class="cc-hint">{rto.email || '—'}</span>
           </div>
         ))}
