@@ -466,7 +466,7 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
     fb.style.display = 'block';
     const fbQuestion = document.getElementById('feedback-question-text');
     if (fbQuestion) {
-      fbQuestion.textContent = `Did your fare NOT match ${CURRENCY}${fare.subtotal - TARIFF.TOLERANCE}–${CURRENCY}${fare.subtotal + TARIFF.TOLERANCE}?`;
+      fbQuestion.textContent = `Is your actual fare higher than the ${CURRENCY}${fare.subtotal - TARIFF.TOLERANCE}–${CURRENCY}${fare.subtotal + TARIFF.TOLERANCE} range?`;
     }
     document.querySelectorAll('.feedback-btn').forEach(b => {
       b.classList.remove('selected', 'pulse');

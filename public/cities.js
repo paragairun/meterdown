@@ -970,6 +970,53 @@ const CITIES = {
     helplineLabel: 'UT Chandigarh Transport',
     helplineHint: 'UT hotline',
   },
+
+  // Source: All India Radio's official news portal (newsonair.gov.in,
+  // a government source) reporting the J&K Cabinet's own decision
+  // (14 Mar 2026, chaired by CM Omar Abdullah): 18% fare hike for all
+  // passenger vehicles UT-wide. Corroborated by Rising Kashmir
+  // (regional newspaper) reporting RTO Kashmir's implementing
+  // notification just days before this was built, confirming the same
+  // figures for both e-autos and petrol-driven auto-rickshaws.
+  //
+  // NOTE: this is the Kashmir Valley division's rate. Jammu division
+  // (same UT, separate RTO) was NOT built alongside this - an earlier,
+  // unreconciled report described Jammu's "black autos" at Rs46 for
+  // the first TWO km, conflicting with this Rs25/first-km figure, and
+  // it's unclear whether that predates this Cabinet decision or is a
+  // genuinely separate Jammu-specific rate. Flagged rather than guessed.
+  srinagar: {
+    name:         'Srinagar',
+    slug:         'srinagar',
+    state:        'Jammu and Kashmir',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 34.0837, lng: 74.7973 },
+    acBounds:     { sw: { lat: 33.95, lng: 74.65 }, ne: { lat: 34.20, lng: 74.95 } },
+    tariffDate:   '14 Mar 2026 (J&K Cabinet / RTO Kashmir)',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 25 },
+        { upTo: 999999, perKm: 20 },
+      ],
+      WAIT_RATE_PER_MIN: 0, // Not found in any source - set to 0 rather
+      // than guessed.
+      NIGHT_MULTIPLIER:  1, // No night surcharge found.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTO Kashmir / J&K Transport Commissioner', phone: '0194-2506686', email: 'tptcommissionerjk@gmail.com' },
+    ],
+    helpline: '0194-3574-338',
+    helplineLabel: 'District Srinagar Helpline',
+    helplineHint: 'District hotline',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
@@ -978,7 +1025,7 @@ const CITY_LIST = [
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
   'goa', 'gangtok', 'nagpur', 'nashik',
   'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
-  'cebucity', 'gurugram', 'faridabad', 'chandigarh',
+  'cebucity', 'gurugram', 'faridabad', 'chandigarh', 'srinagar',
 ];
 
 /* ════════════════════════════════════════════
@@ -1116,6 +1163,7 @@ var GEO_CITY_MAP = {
   'gurgaon':      'gurugram',
   'faridabad':    'faridabad',
   'chandigarh':   'chandigarh',
+  'srinagar':     'srinagar',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
