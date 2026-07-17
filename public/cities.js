@@ -338,11 +338,23 @@ const CITIES = {
     currencySymbol: '₹',
     mapCenter:    { lat: 23.0225, lng: 72.5714 },
     acBounds:     { sw: { lat: 22.85, lng: 72.40 }, ne: { lat: 23.20, lng: 72.75 } },
-    tariffDate:   'Nov 2021',
+    // CORRECTED (was stale at Nov 2021's Rs18/Rs13 - missed two
+    // subsequent revisions). Source: DeshGujarat (English) and Gujarat
+    // Samachar (Gujarati, one of Gujarat's largest newspapers), both
+    // dated 22 Jun 2026, reporting a meeting at the Transport
+    // Commissioner's office (Gandhinagar) with Ahmedabad RTO, the
+    // Rickshaw Drivers Welfare Association, and Smart City Driver
+    // Union: minimum fare Rs20->Rs25, per-km Rs15->Rs20, driven by
+    // rising CNG prices (~Rs88/kg, up ~Rs6 in the preceding two
+    // months). Explicitly framed as an AHMEDABAD-specific decision in
+    // both sources, not a Gujarat-wide one (unlike the 2022 revision,
+    // which was explicitly statewide) - do not assume this applies to
+    // Surat/Vadodara/Rajkot without separate confirmation.
+    tariffDate:   '22 Jun 2026 (Transport Commissioner, Ahmedabad)',
     tariff: {
-      MIN_FARE:          18,
+      MIN_FARE:          25,
       MIN_KM:            1.25,
-      RATE_PER_KM:       13.00,
+      RATE_PER_KM:       20.00,
       WAIT_RATE_PER_MIN: 1.00,
       NIGHT_MULTIPLIER:  1.25,
       NIGHT_START:       23,
