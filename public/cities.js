@@ -566,6 +566,171 @@ const CITIES = {
       { label: 'Tourist Police', phone: '1155', email: 'yourfirstfriend@touristpolice.go.th' },
     ],
     helpline: '1584',
+    helplineLabel: 'DLT Complaint Hotline',
+    helplineHint: 'National hotline',
+  },
+
+  // Source: 3 independent major Turkish news outlets (Hürriyet,
+  // Milliyet, Sabah) all reporting the same İBB (Istanbul Metropolitan
+  // Municipality) Meclis council decision from its 12 Feb 2026 session,
+  // effective 16 Feb 2026. Cross-corroborated by two additional
+  // aggregator sources citing the same "İBB tariff" figures. This is
+  // meaningfully well-sourced - three independent mainstream news
+  // outlets reporting the same council decision is comparable to
+  // Bangkok Post's Royal Gazette coverage.
+  //
+  // Night surcharge: Istanbul abolished its night tariff in 2017 - a
+  // single 24/7 rate applies (multiple sources explicitly confirm this
+  // and warn that a driver claiming a night surcharge is not legitimate).
+  //
+  // Uses FLAG_FALL (see computeFare) since Istanbul's meter is
+  // "opening fee + per-km for the whole distance", floored at a
+  // separate minimum fare for short trips - structurally different
+  // from Mumbai-style tariffs where MIN_FARE alone covers the first
+  // MIN_KM with no separate flag-fall add-on.
+  istanbul: {
+    name:         'Istanbul',
+    slug:         'istanbul',
+    state:        'Istanbul',
+    country:      'Turkey',
+    countryCode:  'TR',
+    currencyCode: 'TRY',
+    currencySymbol: '\u20ba',
+    regulatorName: 'Istanbul Metropolitan Municipality (\u0130BB)',
+    regulatorShortName: '\u0130BB',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 41.0082, lng: 28.9784 },
+    acBounds:     { sw: { lat: 40.80, lng: 28.60 }, ne: { lat: 41.25, lng: 29.40 } },
+    tariffDate:   '16 Feb 2026 (\u0130BB Meclis decision)',
+    tariff: {
+      MIN_FARE:          210,
+      MIN_KM:            0,
+      RATE_PER_KM:       43.56,
+      FLAG_FALL:         65.40,
+      WAIT_RATE_PER_MIN: 9.07,
+      NIGHT_MULTIPLIER:  1, // No night surcharge - abolished 2017, confirmed
+      // by multiple sources; a driver claiming one is not following the
+      // legitimate tariff.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         10, // Wider tolerance than Indian cities - TRY
+      // fares are larger round numbers and traffic-driven waiting time
+      // variance is more significant here.
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Istanbul Taxi Drivers Guild', phone: '444 15 23', email: 'info@iteo.org.tr' },
+    ],
+    helpline: '153', // İBB Beyaz Masa (White Desk) citizen complaint line - ALO 153
+    helplineLabel: '\u0130BB Complaint Line',
+    helplineHint: 'Municipality hotline',
+  },
+
+  // Source: 4 independent Mexican news outlets (Terra Mexico, La Silla
+  // Rota, SomosNews, plus historical continuity from El Universal/UnoTV)
+  // - two dated Nov 2025 explicitly confirm the taxi banderazo was
+  // UNCHANGED even as a general Mexico City transit fare adjustment
+  // took effect, giving confidence this is still current. "Taxi Libre"
+  // (street-hailed, pink-and-white) rates used - the most common type.
+  //
+  // Converted from the real meter unit (pesos per 250m or 45 seconds,
+  // whichever comes first - a combined distance+time meter) into
+  // MeterSahi's per-km/per-min model: 1.07 pesos/250m x 4 = 4.28
+  // pesos/km; 1.07 pesos/45sec x (60/45) = ~1.43 pesos/min.
+  //
+  // KNOWN LIMITATION: night surcharge officially applies Mon-Sat
+  // 23:00-6:00 AND all day Sunday - this engine only supports an
+  // hour-of-day window, not a day-of-week rule, so the Sunday-all-day
+  // portion is not modeled. Flagging rather than silently wrong.
+  mexicocity: {
+    name:         'Mexico City',
+    slug:         'mexicocity',
+    state:        'CDMX',
+    country:      'Mexico',
+    countryCode:  'MX',
+    currencyCode: 'MXN',
+    currencySymbol: 'MX$',
+    regulatorName: 'Secretar\u00eda de Movilidad (SEMOVI), Mexico City',
+    regulatorShortName: 'SEMOVI',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 19.4326, lng: -99.1332 },
+    acBounds:     { sw: { lat: 19.20, lng: -99.35 }, ne: { lat: 19.60, lng: -98.95 } },
+    tariffDate:   'Nov 2025 (confirmed unchanged)',
+    tariff: {
+      MIN_FARE:          8.74,
+      MIN_KM:            0,
+      RATE_PER_KM:       4.28,
+      FLAG_FALL:         8.74,
+      WAIT_RATE_PER_MIN: 1.43,
+      NIGHT_MULTIPLIER:  1.20,
+      NIGHT_START:       23,
+      NIGHT_END:         6,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'SEMOVI VigiMovi (taxi reports)', phone: '56581111', email: 'vigimovi@cdmx.gob.mx' },
+    ],
+    helpline: '56581111',
+    helplineLabel: 'LOCATEL (CDMX citizen line)',
+    helplineHint: 'City hotline',
+  },
+
+  // Source: Rio's own municipal government website (transportes.prefeitura.rio,
+  // SMTR - Secretaria Municipal de Transportes) directly lists the
+  // current tariff, corroborated by 4 independent Brazilian news
+  // outlets (Diario do Rio, Tempo Real, Band News FM) all reporting the
+  // same Resolucao SMTR No. 3784, effective 2 Jan 2026. This is a
+  // primary government source, not just secondary reporting - the
+  // strongest sourcing of any city built so far.
+  //
+  // KNOWN LIMITATION: the official night rate (tarifa 2, 20% higher)
+  // applies weekday nights 21:00-6:00 AND all day Sunday/holidays AND
+  // steep-incline roads at any time. This engine only supports an
+  // hour-of-day window, so the Sunday/holiday/steep-hill portions are
+  // not modeled - same class of simplification as Mexico City's
+  // Sunday-all-day gap. Flagging rather than silently wrong.
+  //
+  // Uses FLAG_FALL (bandeirada) + per-km, no separate minimum-fare
+  // floor beyond the flag-fall itself (unlike Istanbul's higher
+  // "indi-bindi" floor) - matches the official formula stated directly
+  // on SMTR's site: "Corrida = Bandeirada + Quilometragem x Tarifa".
+  riodejaneiro: {
+    name:         'Rio de Janeiro',
+    slug:         'riodejaneiro',
+    state:        'Rio de Janeiro',
+    country:      'Brazil',
+    countryCode:  'BR',
+    currencyCode: 'BRL',
+    currencySymbol: 'R$',
+    regulatorName: 'Secretaria Municipal de Transportes (SMTR), Rio de Janeiro',
+    regulatorShortName: 'SMTR',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: -22.9068, lng: -43.1729 },
+    acBounds:     { sw: { lat: -23.08, lng: -43.80 }, ne: { lat: -22.75, lng: -43.10 } },
+    tariffDate:   '2 Jan 2026 (Resolu\u00e7\u00e3o SMTR N\u00ba 3784)',
+    tariff: {
+      MIN_FARE:          6.30,
+      MIN_KM:            0,
+      RATE_PER_KM:       3.85,
+      FLAG_FALL:         6.30,
+      WAIT_RATE_PER_MIN: 0.81, // R$48.51/hour
+      NIGHT_MULTIPLIER:  1.20, // Tarifa 2 (R$4.62/km) is exactly 1.20x
+      // Tarifa 1 (R$3.85/km) - confirmed via direct ratio check.
+      NIGHT_START:       21,
+      NIGHT_END:         6,
+      LUGGAGE_PER_PIECE: 3.85,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'SMTR Ouvidoria (complaints)', phone: '1746', email: 'gabinete.smtr@prefeitura.rio' },
+    ],
+    helpline: '1746',
+    helplineLabel: 'Central 1746 (Prefeitura do Rio)',
+    helplineHint: 'City hotline',
   },
 };
 
@@ -574,7 +739,7 @@ const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
   'goa', 'gangtok', 'nagpur', 'nashik',
-  'bangkok',
+  'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro',
 ];
 
 /* ════════════════════════════════════════════
@@ -698,6 +863,15 @@ var GEO_CITY_MAP = {
   'ponda':        'goa',
 
   'gangtok':      'gangtok',
+
+  'istanbul':     'istanbul',
+
+  'mexico city':  'mexicocity',
+  'ciudad de mexico': 'mexicocity',
+  'ciudad de méxico': 'mexicocity',
+  'cdmx':         'mexicocity',
+
+  'rio de janeiro': 'riodejaneiro',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
@@ -715,15 +889,23 @@ var GEO_REGION_MAP = {
   'gujarat':        'ahmedabad',
   'goa':            'goa',
   'sikkim':         'gangtok',
+  'ciudad de mexico': 'mexicocity',
+  'distrito federal': 'mexicocity',
 };
 
 // Country-level fallback - used only when BOTH city and region-level
 // matching fail. Safe today because every covered country has exactly
-// one city (Thailand -> Bangkok); if a second Thai city is ever added,
-// this entry must move to city-level matching only, same as Maharashtra
-// already had to do above.
+// one city each; if a second city is ever added within any of these
+// countries, that entry must move to city-level matching only, same
+// as Maharashtra already had to do above.
 var GEO_COUNTRY_MAP = {
   'thailand': 'bangkok',
+  'turkey':   'istanbul',
+  'türkiye':  'istanbul',
+  'mexico':   'mexicocity',
+  'méxico':   'mexicocity',
+  'brazil':   'riodejaneiro',
+  'brasil':   'riodejaneiro',
 };
 
 function cityFromString(cityStr, regionStr, countryStr) {
@@ -791,9 +973,16 @@ function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   const freeWaitMins = T.WAIT_FREE_MINS || 0;
   const billableWaitMin = Math.max(0, waitMin - freeWaitMins);
 
+  // FLAG_FALL is an optional fixed charge added on top of the per-km
+  // rate (distinct from MIN_FARE, which is a floor). Needed for cities
+  // like Istanbul where the meter is "opening fee + per-km for the
+  // whole distance", with a separate minimum-fare floor for short
+  // trips - a genuinely different structure from Mumbai-style tariffs
+  // where MIN_FARE alone covers the first MIN_KM. Defaults to 0, so
+  // every existing tariff without this field computes exactly as before.
   let base = distKm <= T.MIN_KM
     ? T.MIN_FARE
-    : Math.max(T.MIN_FARE, Math.round(distKm * T.RATE_PER_KM));
+    : Math.max(T.MIN_FARE, Math.round((T.FLAG_FALL || 0) + distKm * T.RATE_PER_KM));
 
   const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
   const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);
