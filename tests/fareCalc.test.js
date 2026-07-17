@@ -289,6 +289,25 @@ describe('cityFromString - geo-detection matching', () => {
     expect(sandbox.cityFromString('Unknown City', 'Unknown State', 'Brazil')).toBeNull();
   });
 
+  it('does not misdirect Gurugram/Faridabad to Delhi (each now has its own real tariff page)', () => {
+    // Caught while building Gurugram/Faridabad: a stale mapping from
+    // before these cities had dedicated pages sent them to Delhi's
+    // page instead - a different jurisdiction with a different tariff.
+    expect(sandbox.cityFromString('Gurugram', 'Haryana')).toBe('gurugram');
+    expect(sandbox.cityFromString('Gurgaon', 'Haryana')).toBe('gurugram');
+    expect(sandbox.cityFromString('Faridabad', 'Haryana')).toBe('faridabad');
+  });
+
+  it('does not misdirect Noida/Ghaziabad to Delhi (different state, unconfirmed tariff)', () => {
+    // Noida and Ghaziabad are in Uttar Pradesh, not Delhi (NCT) - they
+    // used to silently redirect to Delhi's page, showing a possibly
+    // different state's tariff with false confidence. Removed until a
+    // dedicated, verified UP tariff is built - falling through to the
+    // manual chooser is safer than a confident wrong answer.
+    expect(sandbox.cityFromString('Noida', 'Uttar Pradesh')).toBeNull();
+    expect(sandbox.cityFromString('Ghaziabad', 'Uttar Pradesh')).toBeNull();
+  });
+
   it('does not let country-level fallback override a real city/region match', () => {
     // Sanity check: an Indian city match should never fall through to
     // country matching even if a country string is passed alongside it.
