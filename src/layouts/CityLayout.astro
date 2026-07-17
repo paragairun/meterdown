@@ -35,6 +35,10 @@ interface City {
   currencySymbol?: string;  // default '\u20b9'
   regulatorName?: string;   // default '{state} Motor Vehicles Department'
   regulatorShortName?: string; // default 'RTO'
+  helplineLabel?: string;   // default 'State Transport Helpline'
+  helplineHint?: string;    // default 'Toll-free' - don't assume this for
+  // non-Indian numbers without verification (e.g. Turkey's "444" numbers
+  // are typically local-rate, not free)
   tariffDate: string;
   tariff: Tariff;
   taxiTariffDate?: string;
@@ -82,6 +86,8 @@ const regulatorShortName = city.regulatorShortName || 'RTO';
 // guess at conventions for countries we haven't researched, non-Indian
 // cities get a plain free-text field instead of a fabricated structure.
 const useIndianPlateFormat = (city.countryCode || 'IN') === 'IN';
+const helplineLabel = city.helplineLabel || 'State Transport Helpline';
+const helplineHint = city.helplineHint || 'Toll-free';
 const isTiered = !!T.BANDS;
 const isProgressive = !!T.PROGRESSIVE_BANDS;
 const isBanded = isTiered || isProgressive;
@@ -92,7 +98,11 @@ const bands = isTiered ? T.BANDS! : (isProgressive ? T.PROGRESSIVE_BANDS! : []);
 // we show the first band's flat fare as "starting fare" and the
 // longest-distance band's rate as the "from <currency>X/km" headline,
 // with the full band table shown separately.
-const minFareDisplay = isBanded ? (bands[0].flatFare ?? bands[0].perKm) : T.MIN_FARE;
+function fmtAmount(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(2);
+}
+const minFareRaw = isBanded ? (bands[0].flatFare ?? bands[0].perKm) : T.MIN_FARE;
+const minFareDisplay = fmtAmount(minFareRaw);
 const perKmDisplay = isBanded ? bands[bands.length - 1].perKm!.toFixed(2) : T.RATE_PER_KM.toFixed(2);
 const waitDisplay = T.WAIT_RATE_PER_MIN.toFixed(2);
 const rateHeadline = isBanded
@@ -483,8 +493,18 @@ const faqJsonLd = {
               })
             ) : (
               <>
-                <tr><td>Minimum fare</td><td>{currency}{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
-                <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+                {T.FLAG_FALL ? (
+                  <>
+                    <tr><td>Flag-fall</td><td>{currency}{fmtAmount(T.FLAG_FALL)}</td><td>Fixed charge per trip</td></tr>
+                    <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Applied to full distance</td></tr>
+                    <tr><td>Minimum fare</td><td>{currency}{fmtAmount(T.MIN_FARE)}</td><td>Floor for short trips</td></tr>
+                  </>
+                ) : (
+                  <>
+                    <tr><td>Minimum fare</td><td>{currency}{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
+                    <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+                  </>
+                )}
               </>
             )}
             <tr><td>Waiting charge</td><td>{currency}{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
@@ -504,7 +524,7 @@ const faqJsonLd = {
       <div class="faq-list">
         <details class="faq-item">
           <summary class="faq-q">What is the {city.name} {vehicleLabelShort} fare per km in {city.tariffDate}?</summary>
-          <div class="faq-a">{isBanded ? (<>The fare is <strong>tiered by distance</strong>, starting at {currency}{minFareDisplay} and dropping to <strong>{currency}{perKmDisplay}/km</strong> for longer trips, as per {regulatorName} ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>{currency}{perKmDisplay}/km</strong> as per {regulatorName} ({city.tariffDate}). The minimum fare is {currency}{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</div>
+          <div class="faq-a">{isBanded ? (<>The fare is <strong>tiered by distance</strong>, starting at {currency}{minFareDisplay} and dropping to <strong>{currency}{perKmDisplay}/km</strong> for longer trips, as per {regulatorName} ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>{currency}{perKmDisplay}/km</strong> as per {regulatorName} ({city.tariffDate}). {T.FLAG_FALL ? (<>There's a {currency}{fmtAmount(T.FLAG_FALL)} flag-fall per trip, with a {currency}{fmtAmount(T.MIN_FARE)} minimum for short trips.</>) : (<>The minimum fare is {currency}{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</>)}</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">How do I know if my {city.name} {vehicleLabelShort} meter is tampered?</summary>
@@ -539,9 +559,9 @@ const faqJsonLd = {
         <div class="complaint-options">
         <div class="complaint-card">
           <i class="ti ti-phone"></i>
-          <span class="cc-label">State Transport Helpline</span>
+          <span class="cc-label">{helplineLabel}</span>
           <span class="cc-value">{city.helpline}</span>
-          <span class="cc-hint">Toll-free</span>
+          <span class="cc-hint">{helplineHint}</span>
         </div>
         {city.rtoContact.map((rto) => (
           <div class="complaint-card">
