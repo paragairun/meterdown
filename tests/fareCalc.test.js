@@ -276,6 +276,19 @@ describe('cityFromString - geo-detection matching', () => {
     expect(sandbox.cityFromString('Toronto', 'Ontario', 'Canada')).toBeNull();
   });
 
+  it('resolves Brazil safely now that it has two cities - via distinct state-level region names, never a country-level guess', () => {
+    // Brazil's city and state names coincide (Rio de Janeiro city is in
+    // Rio de Janeiro state; Sao Paulo city is in Sao Paulo state), so
+    // unlike Maharashtra, the region string itself safely disambiguates
+    // - "Sao Paulo" the region can only mean Sao Paulo.
+    expect(sandbox.cityFromString('Some Suburb', 'Rio de Janeiro', 'Brazil')).toBe('riodejaneiro');
+    expect(sandbox.cityFromString('Some Suburb', 'Sao Paulo', 'Brazil')).toBe('saopaulo');
+    // Country-level alone (both city and region unrecognized) must NOT
+    // guess between the two - Brazil was deliberately removed from
+    // GEO_COUNTRY_MAP for exactly this reason.
+    expect(sandbox.cityFromString('Unknown City', 'Unknown State', 'Brazil')).toBeNull();
+  });
+
   it('does not let country-level fallback override a real city/region match', () => {
     // Sanity check: an Indian city match should never fall through to
     // country matching even if a country string is passed alongside it.
