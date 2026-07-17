@@ -7,8 +7,9 @@
   },
   "scripts": {
     "extract-cities": "node scripts/extract-cities.js",
-    "predev": "npm run extract-cities",
-    "prebuild": "npm run extract-cities",
+    "generate-sitemap": "node scripts/generate-sitemap.js",
+    "predev": "npm run extract-cities && npm run generate-sitemap",
+    "prebuild": "npm run extract-cities && npm run generate-sitemap",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
