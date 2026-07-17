@@ -308,6 +308,18 @@ describe('cityFromString - geo-detection matching', () => {
     expect(sandbox.cityFromString('Ghaziabad', 'Uttar Pradesh')).toBeNull();
   });
 
+  it('does not extend Srinagar\'s rate to Jammu via a region-level guess', () => {
+    // Srinagar (Kashmir division) and Jammu (Jammu division) share a
+    // union territory but have separate RTOs, and a real conflicting
+    // report suggested Jammu's black-auto rate may differ from
+    // Srinagar's Cabinet-approved rate. No "jammu and kashmir"
+    // region-level fallback was added for exactly this reason - a
+    // Jammu visitor with an unrecognized city name must fall through
+    // to the manual chooser, not get Srinagar's rate by default.
+    expect(sandbox.cityFromString('Some Jammu Suburb', 'Jammu and Kashmir')).toBeNull();
+    expect(sandbox.cityFromString('Srinagar', 'Jammu and Kashmir')).toBe('srinagar');
+  });
+
   it('does not let country-level fallback override a real city/region match', () => {
     // Sanity check: an Indian city match should never fall through to
     // country matching even if a country string is passed alongside it.
