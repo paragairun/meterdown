@@ -732,6 +732,58 @@ const CITIES = {
     helplineLabel: 'Central 1746 (Prefeitura do Rio)',
     helplineHint: 'City hotline',
   },
+
+  // Source: prefeitura.sp.gov.br (Sao Paulo City Hall's own official
+  // announcement, via SMT/DTP), corroborated by 6 independent
+  // Brazilian news outlets (ISTOE Dinheiro, Motor Show, Mobile Time,
+  // Diario do Transporte, Metropoles x2). Effective 11 Aug 2025, ~11
+  // months before this was built - the prior revision was Oct 2023
+  // (roughly 2-year cadence), so no signs of a more recent change.
+  // "Comum" (standard) category used - the most common taxi type.
+  //
+  // KNOWN LIMITATION: night surcharge (Bandeira 2, +30%) officially
+  // applies only to the per-km portion, not the flag-fall or waiting
+  // charge - this engine's NIGHT_MULTIPLIER scales the whole fare
+  // uniformly, so it slightly overstates the flag-fall/wait portion at
+  // night. Same class of approximation as Rio de Janeiro's tariff, and
+  // bounded/small since flag-fall is a minor part of most trip totals.
+  // Also same day-of-week gap as Rio: night rate applies all day
+  // Sunday/holidays too, not modeled (hour-of-day window only).
+  saopaulo: {
+    name:         'S\u00e3o Paulo',
+    slug:         'saopaulo',
+    state:        'S\u00e3o Paulo',
+    country:      'Brazil',
+    countryCode:  'BR',
+    currencyCode: 'BRL',
+    currencySymbol: 'R$',
+    regulatorName: 'Secretaria Municipal de Mobilidade Urbana e Transporte (SMT), S\u00e3o Paulo',
+    regulatorShortName: 'SMT',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: -23.5505, lng: -46.6333 },
+    acBounds:     { sw: { lat: -23.75, lng: -46.85 }, ne: { lat: -23.35, lng: -46.40 } },
+    tariffDate:   '11 Aug 2025 (SMT/DTP)',
+    tariff: {
+      MIN_FARE:          6.55,
+      MIN_KM:            0,
+      RATE_PER_KM:       4.80,
+      FLAG_FALL:         6.55,
+      WAIT_RATE_PER_MIN: 0.93, // R$55.50/hour
+      NIGHT_MULTIPLIER:  1.30, // Confirmed: 4.80 x 1.30 = 6.24, matches
+      // the sourced Bandeira 2 rate exactly.
+      NIGHT_START:       20,
+      NIGHT_END:         6,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'SP156 Taxi Complaints (DTP)', phone: '156', email: 'ouvidoria@sptrans.com.br' },
+    ],
+    helpline: '156',
+    helplineLabel: 'Central 156 (Prefeitura de SP)',
+    helplineHint: 'City hotline',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
@@ -739,7 +791,7 @@ const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
   'goa', 'gangtok', 'nagpur', 'nashik',
-  'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro',
+  'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
 ];
 
 /* ════════════════════════════════════════════
@@ -872,12 +924,20 @@ var GEO_CITY_MAP = {
   'cdmx':         'mexicocity',
 
   'rio de janeiro': 'riodejaneiro',
+  'sao paulo':    'saopaulo',
+  'são paulo':    'saopaulo',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
 // region alone since there's no ambiguity. (Maharashtra is excluded:
 // it has four covered cities (Mumbai, Pune, Nagpur, Nashik), so it must be
 // resolved via GEO_CITY_MAP above instead.)
+//
+// Brazil's two cities (Rio de Janeiro, Sao Paulo) are each their own
+// STATE too (a common Brazilian naming pattern - city and state share
+// the name), so unlike Maharashtra, the region string itself
+// disambiguates them safely - "Sao Paulo" the region can only mean
+// Sao Paulo state/city, not Rio.
 var GEO_REGION_MAP = {
   'delhi':          'delhi',
   'nct of delhi':   'delhi',
@@ -891,6 +951,9 @@ var GEO_REGION_MAP = {
   'sikkim':         'gangtok',
   'ciudad de mexico': 'mexicocity',
   'distrito federal': 'mexicocity',
+  'rio de janeiro': 'riodejaneiro',
+  'sao paulo':      'saopaulo',
+  'são paulo':      'saopaulo',
 };
 
 // Country-level fallback - used only when BOTH city and region-level
@@ -898,14 +961,17 @@ var GEO_REGION_MAP = {
 // one city each; if a second city is ever added within any of these
 // countries, that entry must move to city-level matching only, same
 // as Maharashtra already had to do above.
+//
+// Brazil is deliberately EXCLUDED here (same reasoning as Maharashtra):
+// it now has two covered cities (Rio, Sao Paulo), so guessing from
+// country name alone would be genuinely ambiguous. City/region-level
+// matching above handles it safely instead.
 var GEO_COUNTRY_MAP = {
   'thailand': 'bangkok',
   'turkey':   'istanbul',
   'türkiye':  'istanbul',
   'mexico':   'mexicocity',
   'méxico':   'mexicocity',
-  'brazil':   'riodejaneiro',
-  'brasil':   'riodejaneiro',
 };
 
 function cityFromString(cityStr, regionStr, countryStr) {
