@@ -108,6 +108,44 @@ describe('computeFare - flat vs tiered dispatch', () => {
   });
 });
 
+describe('computeFare - flat-rate with optional FLAG_FALL (Istanbul)', () => {
+  // Verified against 3 independent major Turkish news outlets (Hürriyet,
+  // Milliyet, Sabah) reporting the same İBB Meclis decision, effective
+  // 16 Feb 2026: 65.40 TL flag-fall + 43.56 TL/km, 210 TL minimum fare.
+  const istanbulTariff = {
+    MIN_FARE: 210, MIN_KM: 0, RATE_PER_KM: 43.56, FLAG_FALL: 65.40,
+    WAIT_RATE_PER_MIN: 9.07, NIGHT_MULTIPLIER: 1, LUGGAGE_PER_PIECE: 0,
+  };
+
+  it('floors short trips at the minimum fare even with a flag-fall added', () => {
+    expect(sandbox.computeFare(0.5, 0, false, 0, istanbulTariff).subtotal).toBe(210);
+    expect(sandbox.computeFare(1,   0, false, 0, istanbulTariff).subtotal).toBe(210);
+  });
+
+  it('adds the flag-fall on top of per-km rate for the whole distance once above the floor', () => {
+    // 5km: 65.40 + 5x43.56 = 283.20 -> 283
+    expect(sandbox.computeFare(5, 0, false, 0, istanbulTariff).subtotal).toBe(283);
+    // 10km: 65.40 + 10x43.56 = 501.00 -> 501
+    expect(sandbox.computeFare(10, 0, false, 0, istanbulTariff).subtotal).toBe(501);
+  });
+
+  it('does not affect flat-rate cities with no FLAG_FALL defined (backward compatibility)', () => {
+    // Same Maharashtra MVD worked example used elsewhere in this file -
+    // must still compute identically now that FLAG_FALL exists as a
+    // possible field, since Mumbai's tariff never sets it.
+    const mumbaiTariff = { MIN_FARE: 26, MIN_KM: 1.5, RATE_PER_KM: 17.14, WAIT_RATE_PER_MIN: 1.714, NIGHT_MULTIPLIER: 1.25, LUGGAGE_PER_PIECE: 6 };
+    expect(sandbox.computeFare(2.4, 0, false, 0, mumbaiTariff).subtotal).toBe(41);
+  });
+
+  it('matches Mexico City\'s sourced day/night ratio exactly (20% night surcharge)', () => {
+    const mxTariff = sandbox.CITIES.mexicocity.tariff;
+    const day = sandbox.computeFare(5, 0, false, 0, mxTariff);
+    const night = sandbox.computeFare(5, 0, true, 0, mxTariff);
+    expect(day.subtotal).toBe(30); // 8.74 + 5*4.28 = 30.14 -> 30
+    expect(night.subtotal / day.subtotal).toBeCloseTo(1.20, 2);
+  });
+});
+
 describe('computeFare - progressive/cumulative banded cities (Bangkok)', () => {
   // Verified against 5 independent contemporaneous news sources reporting
   // the same Jan 2023 Royal Gazette announcement, and cross-checked
@@ -229,6 +267,13 @@ describe('cityFromString - geo-detection matching', () => {
 
   it('matches Bangkok directly by city name too', () => {
     expect(sandbox.cityFromString('Bangkok', 'Bangkok', 'Thailand')).toBe('bangkok');
+  });
+
+  it('does not false-positive match short substrings from unrelated places (Ontario contains "rio")', () => {
+    // Caught during Rio de Janeiro's build: a bare 'rio' key in
+    // GEO_CITY_MAP would have matched "Ontario" as a substring,
+    // incorrectly redirecting Canadian visitors to Rio de Janeiro.
+    expect(sandbox.cityFromString('Toronto', 'Ontario', 'Canada')).toBeNull();
   });
 
   it('does not let country-level fallback override a real city/region match', () => {
