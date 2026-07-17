@@ -146,6 +146,45 @@ describe('computeFare - flat-rate with optional FLAG_FALL (Istanbul)', () => {
   });
 });
 
+describe('computeFare - progressive bands with CEIL_TO_KM (Shillong)', () => {
+  // Verified directly against Meghalaya's own official fare schedule
+  // PDF (megtransport.gov.in), which lists specific route distances
+  // and fares - e.g. "IGP to MPRO, 3.8km, Rs32" only matches if 3.8km
+  // is billed as a full 4km, not continuously. "First km or part
+  // thereof, every subsequent km or part thereof" is explicit in the
+  // source document's own wording.
+  const shillongAuto = {
+    PROGRESSIVE_BANDS: [{ upTo: 1, flatFare: 14 }, { upTo: 999999, perKm: 6 }],
+    CEIL_TO_KM: true,
+    WAIT_RATE_PER_MIN: 1.2,
+    NIGHT_MULTIPLIER: 1,
+    LUGGAGE_PER_PIECE: 0,
+  };
+
+  it('rounds any partial km up to a full km before billing', () => {
+    // Real sample fares from the source PDF
+    expect(sandbox.computeFare(3.8, 0, false, 0, shillongAuto).subtotal).toBe(32);
+    expect(sandbox.computeFare(8.99, 0, false, 0, shillongAuto).subtotal).toBe(62);
+  });
+
+  it('bills whole-km distances at exactly their own rate, no extra rounding', () => {
+    expect(sandbox.computeFare(2, 0, false, 0, shillongAuto).subtotal).toBe(20);
+    expect(sandbox.computeFare(1, 0, false, 0, shillongAuto).subtotal).toBe(14);
+  });
+
+  it('bills any distance under 1km at the full first-km rate', () => {
+    expect(sandbox.computeFare(0.1, 0, false, 0, shillongAuto).subtotal).toBe(14);
+    expect(sandbox.computeFare(0.99, 0, false, 0, shillongAuto).subtotal).toBe(14);
+  });
+
+  it('does not affect progressive-band cities without CEIL_TO_KM (backward compatibility)', () => {
+    // Bangkok bills continuously/fractionally - must be unaffected by
+    // this new capability existing.
+    const bangkokTariff = sandbox.CITIES.bangkok.tariff;
+    expect(sandbox.computeFare(5, 0, false, 0, bangkokTariff).subtotal).toBe(66);
+  });
+});
+
 describe('computeFare - progressive/cumulative banded cities (Bangkok)', () => {
   // Verified against 5 independent contemporaneous news sources reporting
   // the same Jan 2023 Royal Gazette announcement, and cross-checked
@@ -318,6 +357,17 @@ describe('cityFromString - geo-detection matching', () => {
     // to the manual chooser, not get Srinagar's rate by default.
     expect(sandbox.cityFromString('Some Jammu Suburb', 'Jammu and Kashmir')).toBeNull();
     expect(sandbox.cityFromString('Srinagar', 'Jammu and Kashmir')).toBe('srinagar');
+  });
+
+  it('resolves Kerala safely now that it has three cities - never a region-level guess', () => {
+    // Kerala went from one covered city (Kochi) to three (Kochi,
+    // Thiruvananthapuram, Kozhikode) in the same build - the old
+    // 'kerala' -> 'kochi' region-level fallback became unsafe the
+    // moment the second city was added, same pattern as Maharashtra.
+    expect(sandbox.cityFromString('Kochi', 'Kerala')).toBe('kochi');
+    expect(sandbox.cityFromString('Trivandrum', 'Kerala')).toBe('thiruvananthapuram');
+    expect(sandbox.cityFromString('Calicut', 'Kerala')).toBe('kozhikode');
+    expect(sandbox.cityFromString('Some Unrecognized Town', 'Kerala')).toBeNull();
   });
 
   it('does not let country-level fallback override a real city/region match', () => {
