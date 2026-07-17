@@ -309,11 +309,34 @@ const CITIES = {
     currencySymbol: '₹',
     mapCenter:    { lat: 13.0827, lng: 80.2707 },
     acBounds:     { sw: { lat: 12.85, lng: 80.05 }, ne: { lat: 13.25, lng: 80.45 } },
-    tariffDate:   'Current official',
+    // CORRECTED RATE_PER_KM (was 16, didn't match any traceable
+    // source - "Current official" as a date was itself a red flag).
+    // Source: Chennai Auto Fare Chart (2023) - Rs25 min for first
+    // 1.8km, Rs12/km thereafter, Rs3.50/5min waiting, +50% night
+    // (11pm-5am). This is the most coherent identifiable "official"
+    // figure, distinct from Tamil Nadu's much older base Government
+    // Order (Rs6/km, Rs14 min for 2km - itself frozen for years by
+    // litigation per transportinfo.in's own account of the order's
+    // history) and from a 2025 union-imposed rate (Rs50 min/Rs18 per
+    // km) that TWO independent sources (LiveChennai, dtnext.in)
+    // explicitly describe as UNOFFICIAL - "implemented unilaterally by
+    // unions... despite years of protests and petitions for fare
+    // revisions, no official action has been taken."
+    //
+    // IMPORTANT COMPLIANCE CAVEAT: a Deccan Herald report independently
+    // describes real-world Chennai auto fares as chronically far above
+    // any of these figures - "anywhere between Rs80 to Rs100 for a
+    // distance of two km" - due to widespread meter-dumping and
+    // unions/drivers setting their own rates. This is a more severe
+    // version of the compliance gap already flagged for Goa. The
+    // number shown here is the most defensible OFFICIAL figure
+    // available, not necessarily what most Chennai auto drivers will
+    // actually accept in practice.
+    tariffDate:   '2023 revised chart (TN auto fare)',
     tariff: {
       MIN_FARE:          25,
       MIN_KM:            1.8,
-      RATE_PER_KM:       16.00,
+      RATE_PER_KM:       12.00,
       WAIT_RATE_PER_MIN: 0.70,  // ₹3.50 per 5 min
       NIGHT_MULTIPLIER:  1.50,
       NIGHT_START:       23,
@@ -1029,6 +1052,187 @@ const CITIES = {
     helplineLabel: 'District Srinagar Helpline',
     helplineHint: 'District hotline',
   },
+
+  // Source: Meghalaya Transport Department's own official fare
+  // schedule PDF (megtransport.gov.in), signed by the Secretary,
+  // Regional Transport Authority, East Khasi Hills - a primary
+  // government document, not secondary reporting. Corroborated by The
+  // Shillong Times' independent report of the original Cabinet
+  // decision (matching numbers exactly) and the Meghalaya government's
+  // own press-release portal still hosting the same figures.
+  //
+  // Dated 13 Jan 2020 (six years old at build time) - genuinely
+  // unusual for a city this size, but corroborated: a March 2023
+  // article about fares being "reverted to old rates" post-COVID
+  // confirms this remains the government's active intended baseline,
+  // not something quietly superseded. No evidence of any later
+  // revision found despite specific searching.
+  //
+  // Both auto and taxi use CEIL_TO_KM - the source's own wording is
+  // "first km or part thereof, every subsequent km or part thereof",
+  // verified directly against the PDF's own sample fare table (e.g.
+  // "IGP to MPRO, 3.8km, Rs32" only matches if 3.8km bills as a full
+  // 4km) before this capability was added to the engine.
+  shillong: {
+    name:         'Shillong',
+    slug:         'shillong',
+    state:        'Meghalaya',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 25.5788, lng: 91.8933 },
+    acBounds:     { sw: { lat: 25.50, lng: 91.80 }, ne: { lat: 25.65, lng: 91.95 } },
+    tariffDate:   '13 Jan 2020 (RTA East Khasi Hills)',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 14 },
+        { upTo: 999999, perKm: 6 },
+      ],
+      CEIL_TO_KM:        true,
+      WAIT_RATE_PER_MIN: 1.2, // Rs6 per 5 minutes
+      NIGHT_MULTIPLIER:  1,   // No night surcharge found in the source.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    taxiTariffDate: '13 Jan 2020 (RTA East Khasi Hills)',
+    taxiTariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 26 },
+        { upTo: 999999, perKm: 13 },
+      ],
+      CEIL_TO_KM:        true,
+      WAIT_RATE_PER_MIN: 1.4, // Rs7 per 5 minutes
+      NIGHT_MULTIPLIER:  1,
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTA East Khasi Hills, Shillong', phone: '', email: '' },
+    ],
+    helpline: '1971',
+    helplineLabel: 'CM Connect (Grievance Helpline)',
+    helplineHint: 'State hotline, 24x7',
+  },
+
+  // Source: Free Press Journal (established Indian newspaper), 21 May
+  // 2022, reporting a genuine RTA (Regional Transport Authority)
+  // decision - officials quoted by name/role, night surcharge %
+  // specified. No evidence found of any subsequent revision despite
+  // specific searching (4 years stable, similar pattern to Haryana's
+  // 2018-2022 and Meghalaya's 2020-2026 unchanged rates - plausible
+  // for a state that doesn't revise as often as Maharashtra/Turkey).
+  //
+  // "Rs20 for the first km, Rs17/km for the subsequent journey" reads
+  // as the same first-km-flat-then-per-km pattern as Gurugram/
+  // Chandigarh/Srinagar/Shillong, not a Mumbai-style full-distance rate.
+  indore: {
+    name:         'Indore',
+    slug:         'indore',
+    state:        'Madhya Pradesh',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 22.7196, lng: 75.8577 },
+    acBounds:     { sw: { lat: 22.60, lng: 75.75 }, ne: { lat: 22.85, lng: 75.95 } },
+    tariffDate:   '21 May 2022 (RTA Indore)',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 20 },
+        { upTo: 999999, perKm: 17 },
+      ],
+      WAIT_RATE_PER_MIN: 0, // Not found in any source - set to 0
+      // rather than guessed.
+      NIGHT_MULTIPLIER:  1.20,
+      NIGHT_START:       23,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'MP Transport Dept Customer Care', phone: '0751-2971008', email: 'care.mptransport@gmail.com' },
+    ],
+    helpline: '0751-2971008',
+    helplineLabel: 'MP Transport Customer Care',
+    helplineHint: 'State hotline',
+  },
+
+  // Source: Kerala Cabinet decision, 20 Apr 2022, effective 1 May 2022
+  // - corroborated by 5 independent news outlets (PTI/LatestLY,
+  // ThePrint, Onmanorama, Asianet Newsable) AND the Kerala Chief
+  // Minister's own official website (keralacm.gov.in, "Cabinet
+  // Decisions 20-04-2022"). This is a STATEWIDE rate, not city-specific
+  // - same figures as the existing Kochi entry, which already uses
+  // this exact source. No evidence found of any more recent revision
+  // despite specific searching; Kerala MVD's own fare-revision page is
+  // still headlined with this same 2022 change and copyrighted 2026.
+  thiruvananthapuram: {
+    name:         'Thiruvananthapuram',
+    slug:         'thiruvananthapuram',
+    state:        'Kerala',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 8.5241, lng: 76.9366 },
+    acBounds:     { sw: { lat: 8.40, lng: 76.85 }, ne: { lat: 8.65, lng: 77.05 } },
+    tariffDate:   'May 2022',
+    tariff: {
+      MIN_FARE:          30,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       15.00,
+      WAIT_RATE_PER_MIN: 1.50,
+      NIGHT_MULTIPLIER:  1.50,
+      NIGHT_START:       22,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Kerala MVD Helpdesk', phone: '91 88 96 11 00', email: 'complaints.mvd@kerala.gov.in' },
+    ],
+    helpline: '91 88 96 11 00',
+  },
+
+  // Same statewide Kerala Cabinet decision as Kochi/Thiruvananthapuram
+  // above.
+  kozhikode: {
+    name:         'Kozhikode',
+    slug:         'kozhikode',
+    state:        'Kerala',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 11.2588, lng: 75.7804 },
+    acBounds:     { sw: { lat: 11.15, lng: 75.70 }, ne: { lat: 11.35, lng: 75.90 } },
+    tariffDate:   'May 2022',
+    tariff: {
+      MIN_FARE:          30,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       15.00,
+      WAIT_RATE_PER_MIN: 1.50,
+      NIGHT_MULTIPLIER:  1.50,
+      NIGHT_START:       22,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Kerala MVD Helpdesk', phone: '91 88 96 11 00', email: 'complaints.mvd@kerala.gov.in' },
+    ],
+    helpline: '91 88 96 11 00',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
@@ -1038,6 +1242,7 @@ const CITY_LIST = [
   'goa', 'gangtok', 'nagpur', 'nashik',
   'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
   'cebucity', 'gurugram', 'faridabad', 'chandigarh', 'srinagar',
+  'shillong', 'indore', 'thiruvananthapuram', 'kozhikode',
 ];
 
 /* ════════════════════════════════════════════
@@ -1138,6 +1343,10 @@ var GEO_CITY_MAP = {
   'kochi':        'kochi',
   'ernakulam':    'kochi',
   'thrissur':     'kochi',
+  'thiruvananthapuram': 'thiruvananthapuram',
+  'trivandrum':   'thiruvananthapuram',
+  'kozhikode':    'kozhikode',
+  'calicut':      'kozhikode',
   'kolkata':      'kolkata',
   'howrah':       'kolkata',
   'chennai':      'chennai',
@@ -1176,12 +1385,16 @@ var GEO_CITY_MAP = {
   'faridabad':    'faridabad',
   'chandigarh':   'chandigarh',
   'srinagar':     'srinagar',
+  'shillong':     'shillong',
+  'indore':       'indore',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
 // region alone since there's no ambiguity. (Maharashtra is excluded:
-// it has four covered cities (Mumbai, Pune, Nagpur, Nashik), so it must be
-// resolved via GEO_CITY_MAP above instead.)
+// it has four covered cities (Mumbai, Pune, Nagpur, Nashik). Kerala is
+// also excluded: it now has three covered cities (Kochi,
+// Thiruvananthapuram, Kozhikode). Both must be resolved via
+// GEO_CITY_MAP above instead.)
 //
 // Brazil's two cities (Rio de Janeiro, Sao Paulo) are each their own
 // STATE too (a common Brazilian naming pattern - city and state share
@@ -1193,13 +1406,14 @@ var GEO_REGION_MAP = {
   'nct of delhi':   'delhi',
   'karnataka':      'bengaluru',
   'telangana':      'hyderabad',
-  'kerala':         'kochi',
   'west bengal':    'kolkata',
   'tamil nadu':     'chennai',
   'gujarat':        'ahmedabad',
   'goa':            'goa',
   'sikkim':         'gangtok',
   'chandigarh':     'chandigarh',
+  'meghalaya':      'shillong',
+  'madhya pradesh': 'indore',
   'ciudad de mexico': 'mexicocity',
   'distrito federal': 'mexicocity',
   'rio de janeiro': 'riodejaneiro',
@@ -1378,14 +1592,23 @@ function computeFareProgressive(distKm, waitMin, isNight, luggagePieces, tariff)
   const freeWaitMins = T.WAIT_FREE_MINS || 0;
   const billableWaitMin = Math.max(0, waitMin - freeWaitMins);
 
+  // CEIL_TO_KM: some cities bill "first km or part thereof, every
+  // subsequent km or part thereof" - meaning a 3.8km trip is billed as
+  // 4 whole km, not 3.8. Verified against Meghalaya's own official fare
+  // schedule (e.g. IGP to MPRO, 3.8km, billed at the same rate as a
+  // flat 4km trip) before adding this. Defaults to off, so every
+  // existing progressive-band city (Bangkok, Gurugram, etc., which all
+  // bill continuously/fractionally) computes exactly as before.
+  const effectiveDist = T.CEIL_TO_KM ? Math.max(1, Math.ceil(distKm)) : distKm;
+
   let base = 0;
   let prevUpTo = 0;
   for (const band of T.PROGRESSIVE_BANDS) {
-    if (distKm <= prevUpTo) break;
+    if (effectiveDist <= prevUpTo) break;
     if (band.flatFare !== undefined) {
       base += band.flatFare;
     } else {
-      const portionKm = Math.min(distKm, band.upTo) - prevUpTo;
+      const portionKm = Math.min(effectiveDist, band.upTo) - prevUpTo;
       base += portionKm * band.perKm;
     }
     prevUpTo = band.upTo;
