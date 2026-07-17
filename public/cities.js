@@ -784,6 +784,192 @@ const CITIES = {
     helplineLabel: 'Central 156 (Prefeitura de SP)',
     helplineHint: 'City hotline',
   },
+
+  // Source: multiple independent outlets including the Philippine News
+  // Agency (a state news agency, quoting LTFRB-7 Regional Director
+  // Eduardo Montealto Jr. by name), Cebu Daily News (Philippine Daily
+  // Inquirer's Cebu edition), and SunStar Cebu. Unlike Manila (where
+  // regular taxi fare hikes were explicitly "under deliberation" as of
+  // March 2026), Cebu's rate is CONFIRMED and already in effect since
+  // Jan 2025 - a genuinely different situation, not just better luck
+  // with sourcing.
+  cebucity: {
+    name:         'Cebu City',
+    slug:         'cebucity',
+    state:        'Cebu',
+    country:      'Philippines',
+    countryCode:  'PH',
+    currencyCode: 'PHP',
+    currencySymbol: '\u20b1',
+    regulatorName: 'Land Transportation Franchising and Regulatory Board - Region 7 (LTFRB-7)',
+    regulatorShortName: 'LTFRB-7',
+    primaryVehicleType: 'taxi',
+    mapCenter:    { lat: 10.3157, lng: 123.8854 },
+    acBounds:     { sw: { lat: 10.20, lng: 123.80 }, ne: { lat: 10.40, lng: 123.95 } },
+    tariffDate:   'Jan 2025 (LTFRB-7)',
+    tariff: {
+      MIN_FARE:          50,
+      MIN_KM:            0,
+      RATE_PER_KM:       13.50,
+      FLAG_FALL:         50,
+      WAIT_RATE_PER_MIN: 1.00,
+      NIGHT_MULTIPLIER:  1, // No night surcharge found in any source -
+      // set to 1 (none) rather than assuming one exists.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'LTFRB-7 Cebu (direct)', phone: '0917 704 6862', email: 'complaints@ltfrb.gov.ph' },
+    ],
+    helpline: '1342',
+    helplineLabel: 'LTFRB 24/7 Hotline',
+    helplineHint: 'National hotline',
+  },
+
+  // Source: haryanatransport.gov.in (Haryana Transport Department's own
+  // active notification, "Fare of auto rickshaws within the limit of
+  // Municipal Corporations of Gurugram and Faridabad" - one shared
+  // notification covering both cities), corroborated by cityspidey.com
+  // (2019, 2020) and Hindustan Times/Pressreader (May 2022) all
+  // agreeing on the same Rs12/Rs8 structure with no sign of change.
+  // Genuinely stable/infrequently-revised rather than stale - Haryana
+  // doesn't appear to revise as often as Maharashtra or Turkey do.
+  //
+  // Two-tier rate (Rs12/km for the first km, Rs8/km thereafter) is
+  // structurally a progressive band, not a Mumbai-style flat rate -
+  // modeled with PROGRESSIVE_BANDS, first band as flatFare (a genuine
+  // minimum-fare floor for any distance within the first km, not a
+  // prorated per-km charge).
+  gurugram: {
+    name:         'Gurugram',
+    slug:         'gurugram',
+    state:        'Haryana',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 28.4595, lng: 77.0266 },
+    acBounds:     { sw: { lat: 28.35, lng: 76.90 }, ne: { lat: 28.55, lng: 77.15 } },
+    tariffDate:   'Haryana Transport Dept notification',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 12 },
+        { upTo: 999999, perKm: 8 },
+      ],
+      WAIT_RATE_PER_MIN: 0.50, // Rs30/hour
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       23,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 7.50,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTO Gurugram (HR-26)', phone: '0172-3968400', email: 'stcharyana@hry.nic.in' },
+    ],
+    helpline: '0172-3968400',
+    helplineLabel: 'Haryana Saral Helpline',
+    helplineHint: 'State hotline',
+  },
+
+  // Same Haryana Transport Dept notification as Gurugram - see comment
+  // there for full sourcing.
+  faridabad: {
+    name:         'Faridabad',
+    slug:         'faridabad',
+    state:        'Haryana',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 28.4089, lng: 77.3178 },
+    acBounds:     { sw: { lat: 28.30, lng: 77.20 }, ne: { lat: 28.50, lng: 77.45 } },
+    tariffDate:   'Haryana Transport Dept notification',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 1,      flatFare: 12 },
+        { upTo: 999999, perKm: 8 },
+      ],
+      WAIT_RATE_PER_MIN: 0.50,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       23,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 7.50,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'RTO Faridabad (HR-29/38/51)', phone: '0172-3968400', email: 'stcharyana@hry.nic.in' },
+    ],
+    helpline: '0172-3968400',
+    helplineLabel: 'Haryana Saral Helpline',
+    helplineHint: 'State hotline',
+  },
+
+  // Source: The Tribune (major North Indian newspaper) and
+  // Babushahi.com, both citing the same UT Chandigarh Administration
+  // notification, signed by Diprava Lakra, IAS, Secretary Transport,
+  // dated 7 Jul 2025 - supersedes an earlier 31 Mar 2022 order.
+  // Genuinely well-sourced, comparable to Bangkok/Istanbul tier.
+  //
+  // Explicitly a flat fare for the first 3km ("passengers pay for 3km
+  // even if they travel 1km"), then per-km beyond - a progressive band
+  // structure like Gurugram's, just with a longer initial flat segment.
+  //
+  // No night surcharge or waiting/luggage charge found in any source
+  // for the 2025 revision - set to 0/none rather than assumed. Taxi
+  // tariff (4+1 seater, AC/non-AC now merged per the same notification)
+  // added as a dual mode, matching Mumbai/Pune/Delhi/Kolkata's pattern -
+  // Chandigarh is in the docx's regulated-taxi-cities list too.
+  chandigarh: {
+    name:         'Chandigarh',
+    slug:         'chandigarh',
+    state:        'Chandigarh',
+    country:      'India',
+    countryCode:  'IN',
+    currencyCode: 'INR',
+    currencySymbol: '\u20b9',
+    mapCenter:    { lat: 30.7333, lng: 76.7794 },
+    acBounds:     { sw: { lat: 30.65, lng: 76.70 }, ne: { lat: 30.80, lng: 76.85 } },
+    tariffDate:   '7 Jul 2025 (UT Chandigarh Administration)',
+    tariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 3,      flatFare: 50 },
+        { upTo: 999999, perKm: 13 },
+      ],
+      WAIT_RATE_PER_MIN: 0, // Not found in any source for the 2025
+      // revision - set to 0 rather than guessed.
+      NIGHT_MULTIPLIER:  1, // No night surcharge found.
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    taxiTariffDate: '7 Jul 2025 (UT Chandigarh Administration)',
+    taxiTariff: {
+      PROGRESSIVE_BANDS: [
+        { upTo: 3,      flatFare: 90 },
+        { upTo: 999999, perKm: 25 },
+      ],
+      WAIT_RATE_PER_MIN: 0,
+      NIGHT_MULTIPLIER:  1,
+      NIGHT_START:       0,
+      NIGHT_END:         0,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         10,
+      STANDSTILL_FACTOR: 0.90,
+    },
+    rtoContact: [
+      { label: 'Registering & Licensing Authority', phone: '0172-2700341', email: 'rla-chd@nic.in' },
+    ],
+    helpline: '0172-2740045',
+    helplineLabel: 'UT Chandigarh Transport',
+    helplineHint: 'UT hotline',
+  },
 };
 
 /* ── Ordered list for the dropdown ── */
@@ -792,6 +978,7 @@ const CITY_LIST = [
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
   'goa', 'gangtok', 'nagpur', 'nashik',
   'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
+  'cebucity', 'gurugram', 'faridabad', 'chandigarh',
 ];
 
 /* ════════════════════════════════════════════
@@ -856,11 +1043,6 @@ var GEO_CITY_MAP = {
 
   'delhi':        'delhi',
   'new delhi':    'delhi',
-  'noida':        'delhi',
-  'gurugram':     'delhi',
-  'gurgaon':      'delhi',
-  'faridabad':    'delhi',
-  'ghaziabad':    'delhi',
   'bengaluru':    'bengaluru',
   'bangalore':    'bengaluru',
   'hyderabad':    'hyderabad',
@@ -926,6 +1108,14 @@ var GEO_CITY_MAP = {
   'rio de janeiro': 'riodejaneiro',
   'sao paulo':    'saopaulo',
   'são paulo':    'saopaulo',
+
+  'cebu city':    'cebucity',
+  'cebu':         'cebucity',
+
+  'gurugram':     'gurugram',
+  'gurgaon':      'gurugram',
+  'faridabad':    'faridabad',
+  'chandigarh':   'chandigarh',
 };
 
 // Fallback for states where we cover exactly one city - safe to use
@@ -949,6 +1139,7 @@ var GEO_REGION_MAP = {
   'gujarat':        'ahmedabad',
   'goa':            'goa',
   'sikkim':         'gangtok',
+  'chandigarh':     'chandigarh',
   'ciudad de mexico': 'mexicocity',
   'distrito federal': 'mexicocity',
   'rio de janeiro': 'riodejaneiro',
@@ -972,6 +1163,7 @@ var GEO_COUNTRY_MAP = {
   'türkiye':  'istanbul',
   'mexico':   'mexicocity',
   'méxico':   'mexicocity',
+  'philippines': 'cebucity',
 };
 
 function cityFromString(cityStr, regionStr, countryStr) {
