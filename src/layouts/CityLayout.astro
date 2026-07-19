@@ -31,6 +31,8 @@ interface City {
   state: string;
   country?: string;         // default 'India' when omitted
   countryCode?: string;     // ISO 3166-1 alpha-2, default 'IN'
+  stateCode?: string;       // Indian state RTO code (MH, DL, GJ, etc.) -
+  // used to pre-fill the number plate "State" field on the report form
   currencyCode?: string;    // ISO 4217, default 'INR'
   currencySymbol?: string;  // default '\u20b9'
   regulatorName?: string;   // default '{state} Motor Vehicles Department'
@@ -380,6 +382,7 @@ const faqJsonLd = {
 
       <div id="result-content" class="result-content" style="display:none">
         <div id="map" class="map-box" aria-label="Route map"></div>
+        <a href="mailto:parag.airun@gmail.com?subject=MeterSahi%20feedback" class="share-feedback-link"><i class="ti ti-message-2"></i> Share feedback</a>
         <div class="metrics-row" id="metrics-row"></div>
         <div id="verdict-box" class="verdict-box"></div>
         <div id="breakdown-box" class="breakdown-box"></div>
@@ -399,7 +402,7 @@ const faqJsonLd = {
             <p class="report-subtext">Enter the {vehicleLabelShort}'s number plate to log this report.</p>
             {useIndianPlateFormat ? (
             <div class="vehicle-number-row">
-              <div class="vn-group"><label class="vn-label">State</label><div class="searchable-select" id="ss-state"><input class="ss-input" type="text" placeholder="MH" id="vn-state-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-state-dropdown"></div></div></div>
+              <div class="vn-group"><label class="vn-label">State</label><div class="searchable-select" id="ss-state"><input class="ss-input" type="text" placeholder={city.stateCode || 'MH'} id="vn-state-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-state-dropdown"></div></div></div>
               <div class="vn-sep">–</div>
               <div class="vn-group"><label class="vn-label">District</label><div class="searchable-select" id="ss-district"><input class="ss-input" type="text" placeholder="01" id="vn-district-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-district-dropdown"></div></div></div>
               <div class="vn-sep">–</div>
