@@ -578,6 +578,8 @@ window.handleFeedback = function (answer) {
       document.getElementById('report-confirmation').style.display = 'none';
       document.getElementById('btn-submit-report').style.display = 'flex';
       document.getElementById('btn-submit-report').disabled = false;
+      const priceInput = document.getElementById('vn-price-input');
+      if (priceInput) priceInput.value = '';
       initVehicleSelects();
       reportSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -614,6 +616,13 @@ window.submitReport = function () {
   btn.disabled = true;
 
   const rd = lastRouteData || {};
+  const priceInput = document.getElementById('vn-price-input');
+  const priceAtReport = priceInput && priceInput.value !== '' ? parseFloat(priceInput.value) : null;
+  // Prefer the amount entered right here on the report form - falls
+  // back to the earlier optional "Meter reading" field (section 2/3)
+  // if someone filled that in but left this one blank.
+  const actualFareCharged = priceAtReport != null && !isNaN(priceAtReport) ? priceAtReport : rd.actualFare;
+
   const payload = {
     city_slug:           CITY_SLUG,
     vehicle_type:        vehicleType,
@@ -626,7 +635,7 @@ window.submitReport = function () {
     dropoff_name:         rd.dropName || null,
     distance_km:          rd.distKm != null ? Math.round(rd.distKm * 100) / 100 : null,
     calculated_fare:      rd.calculatedFare != null ? Math.round(rd.calculatedFare) : null,
-    actual_fare_charged:  rd.actualFare != null ? Math.round(rd.actualFare) : null,
+    actual_fare_charged:  actualFareCharged != null ? Math.round(actualFareCharged) : null,
     is_night:             !!rd.isNight,
   };
 
