@@ -468,7 +468,7 @@ const faqJsonLd = {
       <h2 class="section-heading">How this {city.name} {vehicleLabelShort} fare checker works</h2>
       <div class="how-grid">
         <div class="how-card"><div class="how-icon"><i class="ti ti-map-2"></i></div><h3>Live route via Google Maps</h3><p>We fetch your exact route with real-time {city.name} traffic to get accurate distance and journey time.</p></div>
-        <div class="how-card"><div class="how-icon"><i class="ti ti-traffic-cone"></i></div><h3>Wait time from traffic delay</h3><p>Traffic delay × 0.9 estimates genuine standstill time — the portion that accrues meter waiting charges.</p></div>
+        <div class="how-card"><div class="how-icon"><i class="ti ti-traffic-cone"></i></div><h3>Wait time from traffic delay</h3><p>Traffic delay × {T.STANDSTILL_FACTOR} estimates genuine standstill time — the portion that accrues meter waiting charges.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-calculator"></i></div><h3>Official {city.state} tariff</h3><p>{rateHeadline} + {currency}{waitDisplay}/min wait + night surcharge, exactly as per {city.tariffDate} rates.</p></div>
         <div class="how-card"><div class="how-icon"><i class="ti ti-shield-check"></i></div><h3>±{currency}{T.TOLERANCE} tolerance band</h3><p>Meters can differ by a few rupees due to rounding. Only differences beyond {currency}{T.TOLERANCE} are flagged as tampering.</p></div>
       </div>
