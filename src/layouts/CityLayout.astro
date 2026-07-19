@@ -409,12 +409,17 @@ const faqJsonLd = {
               <div class="vn-group"><label class="vn-label">Series</label><div class="searchable-select" id="ss-series"><input class="ss-input" type="text" placeholder="AA" id="vn-series-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-series-dropdown"></div></div></div>
               <div class="vn-sep">–</div>
               <div class="vn-group"><label class="vn-label">Number</label><div class="searchable-select" id="ss-number"><input class="ss-input" type="text" placeholder="1234" id="vn-number-input" autocomplete="off" readonly/><div class="ss-dropdown" id="ss-number-dropdown"></div></div></div>
+              <div class="vn-group vn-group--price"><label class="vn-label">Charged</label><div class="vn-price-wrap"><span class="vn-price-currency">{currency}</span><input class="vn-price-input" type="number" inputmode="decimal" min="0" placeholder="0" id="vn-price-input" autocomplete="off"/></div></div>
             </div>
             ) : (
             <div class="vehicle-number-row vehicle-number-row--plain">
               <div class="field">
                 <label for="vn-plain-input" class="vn-label">{vehicleMeterLabel} registration / plate number</label>
                 <input type="text" id="vn-plain-input" placeholder="e.g. TX-1234" autocomplete="off"/>
+              </div>
+              <div class="field vn-price-field-plain">
+                <label for="vn-price-input" class="vn-label">Amount charged ({currency})</label>
+                <input class="vn-price-input" type="number" inputmode="decimal" min="0" placeholder="0" id="vn-price-input" autocomplete="off"/>
               </div>
             </div>
             )}
