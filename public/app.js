@@ -310,17 +310,61 @@ window.calculateFare = function () {
       setLoading(false);
       if (data.routes && data.routes.length > 0) {
         handleRoutesResult(data.routes[0], isNight, luggage, actualFare, pickup, dropoff, waitOverride);
+        // lastRouteData is populated synchronously inside
+        // handleRoutesResult/renderResults, so it's safe to read here.
+        const rd = lastRouteData || {};
+        logFareCalculation({
+          pickup, dropoff, isNight, luggage, succeeded: true,
+          distanceKm: rd.distKm, calculatedFare: rd.calculatedFare,
+        });
       } else {
         console.warn('Routes API returned no routes:', data);
         showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
+        logFareCalculation({ pickup, dropoff, isNight, luggage, succeeded: false });
       }
     })
     .catch(function(err) {
       setLoading(false);
       console.warn('Routes API error:', err);
       showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitOverride);
+      logFareCalculation({ pickup, dropoff, isNight, luggage, succeeded: false });
     });
 };
+
+/**
+ * Logs one row per "Calculate correct fare" press to the
+ * fare_calculations table - separate from vehicle_reports, which only
+ * logs when someone reports a mismatch. Fire-and-forget: never blocks
+ * or interrupts the user's flow, and a logging failure is silently
+ * swallowed (console-warned only) since this is analytics, not a
+ * feature the user is relying on.
+ */
+function logFareCalculation({ pickup, dropoff, isNight, luggage, succeeded, distanceKm, calculatedFare }) {
+  const payload = {
+    city_slug:       CITY_SLUG,
+    vehicle_type:    vehicleType,
+    pickup_text:     pickup || null,
+    dropoff_text:    dropoff || null,
+    is_night:        !!isNight,
+    luggage_count:   Number.isFinite(luggage) ? luggage : 0,
+    succeeded:       !!succeeded,
+    distance_km:     distanceKm != null ? Math.round(distanceKm * 100) / 100 : null,
+    calculated_fare: calculatedFare != null ? Math.round(calculatedFare) : null,
+  };
+
+  fetch(`${SUPABASE_URL}/rest/v1/fare_calculations`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(payload),
+  }).catch(function (err) {
+    console.warn('Fare calculation logging failed (non-blocking):', err);
+  });
+}
 
 function handleRoutesResult(route, isNight, luggage, actualFare, pickup, dropoff, waitOverride) {
   const TARIFF = getTariff();
@@ -383,6 +427,18 @@ function renderResults(distKm, totalMin, waitMin, isNight, luggage, actualFare, 
 
   document.getElementById('empty-state').style.display    = 'none';
   document.getElementById('result-content').style.display = 'flex';
+
+  // On mobile, the results panel sits below the form instead of beside
+  // it (see .main-grid's 760px breakpoint), so it's off-screen until
+  // the user scrolls. Bring it into view automatically once a fare is
+  // actually calculated. Desktop is untouched - the results are
+  // already visible side-by-side there, so scrolling would just be
+  // disorienting.
+  if (window.innerWidth <= 760) {
+    requestAnimationFrame(function () {
+      document.getElementById('result-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   const waitMins = Math.floor(waitMin);
   const waitSecs = Math.round((waitMin % 1) * 60);
@@ -614,7 +670,7 @@ function generateSeries() {
 const SERIES_CODES = generateSeries();
 const NUMBER_CODES = Array.from({length:9999}, (_,i) => String(i+1).padStart(4,'0'));
 
-function buildSearchableSelect(wrapperId, inputId, dropdownId, options, onChange) {
+function buildSearchableSelect(wrapperId, inputId, dropdownId, options, onChange, defaultValue) {
   const wrapper  = document.getElementById(wrapperId);
   const input    = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
@@ -638,10 +694,19 @@ function buildSearchableSelect(wrapperId, inputId, dropdownId, options, onChange
   searchInput.addEventListener('keydown',e=>{if(e.key==='Escape')closeDropdown();if(e.key==='Enter'){const f=list.querySelector('.ss-option');if(f)selectOption(f.dataset.value);}});
   document.addEventListener('click',e=>{if(!wrapper.contains(e.target))closeDropdown();});
   renderList('');
+
+  // Pre-fill (e.g. the state code matching the current city) while
+  // keeping the field fully editable - a visitor whose vehicle is
+  // registered in a different state can still change it via the
+  // dropdown as normal.
+  if (defaultValue && options.includes(defaultValue)) {
+    input.value = defaultValue;
+    input.classList.add('has-value');
+  }
 }
 
 function initVehicleSelects() {
-  buildSearchableSelect('ss-state','vn-state-input','ss-state-dropdown',STATE_CODES,()=>{});
+  buildSearchableSelect('ss-state','vn-state-input','ss-state-dropdown',STATE_CODES,()=>{},CITY.stateCode);
   buildSearchableSelect('ss-district','vn-district-input','ss-district-dropdown',DISTRICT_CODES,()=>{});
   buildSearchableSelect('ss-series','vn-series-input','ss-series-dropdown',SERIES_CODES,()=>{});
   buildSearchableSelect('ss-number','vn-number-input','ss-number-dropdown',NUMBER_CODES,()=>{});
@@ -656,6 +721,15 @@ function showManualFallback(pickup, dropoff, isNight, luggage, actualFare, waitO
   document.getElementById('metrics-row').innerHTML        = '';
   document.getElementById('verdict-box').innerHTML        = '';
   document.getElementById('breakdown-box').innerHTML      = '';
+
+  // Same mobile scroll-into-view as renderResults() - the manual
+  // fallback form is also reached by pressing Calculate (when the
+  // Routes API can't find a route), so it should behave consistently.
+  if (window.innerWidth <= 760) {
+    requestAnimationFrame(function () {
+      document.getElementById('result-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
   const fb = document.getElementById('feedback-section');
   if (fb) fb.style.display = 'none';
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;

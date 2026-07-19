@@ -26,6 +26,7 @@ const CITIES = {
     state:        'Maharashtra',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'MH',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 19.0760, lng: 72.8777 },
@@ -41,7 +42,7 @@ const CITIES = {
       NIGHT_END:         5,    // 5 AM
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     // Black & Yellow Taxi (CNG), Maharashtra Motor Vehicles Dept,
     // w.e.f. 1 Feb 2025. Source: transport.maharashtra.gov.in
@@ -59,7 +60,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Mumbai Central', phone: '9076201010', email: 'mh01taxicomplaint@gmail.com' },
@@ -75,6 +76,7 @@ const CITIES = {
     state:        'Maharashtra',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'MH',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 18.5204, lng: 73.8567 },
@@ -90,7 +92,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     // Same statewide Maharashtra Black & Yellow Taxi tariff as Mumbai.
     taxiTariffDate: '1 Feb 2025',
@@ -104,7 +106,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Pune', phone: '020-26051400', email: '' },
@@ -119,6 +121,7 @@ const CITIES = {
     state:        'Delhi',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'DL',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 28.6139, lng: 77.2090 },
@@ -134,7 +137,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     // Black & Yellow Taxi (non-AC), Delhi Transport Dept notification
     // dated 9 Jan 2023 - still the current listed rate on
@@ -150,7 +153,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 15,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'STA Delhi', phone: '011-23370004', email: '' },
@@ -164,6 +167,7 @@ const CITIES = {
     state:        'Karnataka',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'KA',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 12.9716, lng: 77.5946 },
@@ -180,7 +184,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Bengaluru East', phone: '080-22372109', email: '' },
@@ -195,6 +199,7 @@ const CITIES = {
     state:        'Telangana',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'TS',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 17.3850, lng: 78.4867 },
@@ -210,7 +215,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'TS Transport Dept', phone: '040-23450145', email: '' },
@@ -224,6 +229,7 @@ const CITIES = {
     state:        'Kerala',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'KL',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 9.9312, lng: 76.2673 },
@@ -239,7 +245,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Kerala MVD Helpdesk', phone: '91 88 96 11 00', email: 'complaints.mvd@kerala.gov.in' },
@@ -253,6 +259,7 @@ const CITIES = {
     state:        'West Bengal',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'WB',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 22.5726, lng: 88.3639 },
@@ -268,7 +275,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     // Yellow Taxi (metered). CAUTION - lower confidence than Mumbai/
     // Pune/Delhi: West Bengal's Transport Dept has NOT revised yellow
@@ -291,7 +298,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 5,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'WB Transport Dept', phone: '033-22143053', email: '' },
@@ -305,6 +312,7 @@ const CITIES = {
     state:        'Tamil Nadu',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'TN',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 13.0827, lng: 80.2707 },
@@ -343,7 +351,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'TN Transport Dept', phone: '044-24333220', email: '' },
@@ -357,6 +365,7 @@ const CITIES = {
     state:        'Gujarat',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'GJ',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 23.0225, lng: 72.5714 },
@@ -384,7 +393,7 @@ const CITIES = {
       NIGHT_END:         6,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Ahmedabad', phone: '079-26580701', email: '' },
@@ -408,6 +417,7 @@ const CITIES = {
     state:        'Goa',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'GA',
     currencyCode: 'INR',
     currencySymbol: '₹',
     primaryVehicleType: 'taxi',
@@ -424,7 +434,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Transport Dept Panaji', phone: '0832-2225606', email: '' },
@@ -446,6 +456,7 @@ const CITIES = {
     state:        'Sikkim',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'SK',
     currencyCode: 'INR',
     currencySymbol: '₹',
     primaryVehicleType: 'taxi',
@@ -467,7 +478,7 @@ const CITIES = {
       NIGHT_END:         4,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'State Transport Authority', phone: '03592-202483', email: 'secy-transport-skm@sikkim.gov.in' },
@@ -489,6 +500,7 @@ const CITIES = {
     state:        'Maharashtra',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'MH',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 21.1458, lng: 79.0882 },
@@ -504,7 +516,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Nagpur City (MH-31)',  phone: '0712-2560781', email: 'rto.31-mh@gov.in' },
@@ -522,6 +534,7 @@ const CITIES = {
     state:        'Maharashtra',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'MH',
     currencyCode: 'INR',
     currencySymbol: '₹',
     mapCenter:    { lat: 19.9975, lng: 73.7898 },
@@ -537,7 +550,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 6,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Nashik City (MH-15)', phone: '0253-2576001', email: 'rto-nashik@mahatranscom.in' },
@@ -595,7 +608,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Tourist Police', phone: '1155', email: 'yourfirstfriend@touristpolice.go.th' },
@@ -652,7 +665,7 @@ const CITIES = {
       TOLERANCE:         10, // Wider tolerance than Indian cities - TRY
       // fares are larger round numbers and traffic-driven waiting time
       // variance is more significant here.
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Istanbul Taxi Drivers Guild', phone: '444 15 23', email: 'info@iteo.org.tr' },
@@ -703,7 +716,7 @@ const CITIES = {
       NIGHT_END:         6,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'SEMOVI VigiMovi (taxi reports)', phone: '56581111', email: 'vigimovi@cdmx.gob.mx' },
@@ -758,7 +771,7 @@ const CITIES = {
       NIGHT_END:         6,
       LUGGAGE_PER_PIECE: 3.85,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'SMTR Ouvidoria (complaints)', phone: '1746', email: 'gabinete.smtr@prefeitura.rio' },
@@ -810,7 +823,7 @@ const CITIES = {
       NIGHT_END:         6,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'SP156 Taxi Complaints (DTP)', phone: '156', email: 'ouvidoria@sptrans.com.br' },
@@ -854,7 +867,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'LTFRB-7 Cebu (direct)', phone: '0917 704 6862', email: 'complaints@ltfrb.gov.ph' },
@@ -884,6 +897,7 @@ const CITIES = {
     state:        'Haryana',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'HR',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 28.4595, lng: 77.0266 },
@@ -900,7 +914,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 7.50,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Gurugram (HR-26)', phone: '0172-3968400', email: 'stcharyana@hry.nic.in' },
@@ -918,6 +932,7 @@ const CITIES = {
     state:        'Haryana',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'HR',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 28.4089, lng: 77.3178 },
@@ -934,7 +949,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 7.50,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Faridabad (HR-29/38/51)', phone: '0172-3968400', email: 'stcharyana@hry.nic.in' },
@@ -965,6 +980,7 @@ const CITIES = {
     state:        'Chandigarh',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'CH',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 30.7333, lng: 76.7794 },
@@ -982,7 +998,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     taxiTariffDate: '7 Jul 2025 (UT Chandigarh Administration)',
     taxiTariff: {
@@ -996,7 +1012,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         10,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Registering & Licensing Authority', phone: '0172-2700341', email: 'rla-chd@nic.in' },
@@ -1026,6 +1042,7 @@ const CITIES = {
     state:        'Jammu and Kashmir',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'JK',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 34.0837, lng: 74.7973 },
@@ -1043,7 +1060,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTO Kashmir / J&K Transport Commissioner', phone: '0194-2506686', email: 'tptcommissionerjk@gmail.com' },
@@ -1079,6 +1096,7 @@ const CITIES = {
     state:        'Meghalaya',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'ML',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 25.5788, lng: 91.8933 },
@@ -1096,7 +1114,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     taxiTariffDate: '13 Jan 2020 (RTA East Khasi Hills)',
     taxiTariff: {
@@ -1111,7 +1129,7 @@ const CITIES = {
       NIGHT_END:         0,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'RTA East Khasi Hills, Shillong', phone: '', email: '' },
@@ -1138,6 +1156,7 @@ const CITIES = {
     state:        'Madhya Pradesh',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'MP',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 22.7196, lng: 75.8577 },
@@ -1155,7 +1174,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'MP Transport Dept Customer Care', phone: '0751-2971008', email: 'care.mptransport@gmail.com' },
@@ -1180,6 +1199,7 @@ const CITIES = {
     state:        'Kerala',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'KL',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 8.5241, lng: 76.9366 },
@@ -1195,7 +1215,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Kerala MVD Helpdesk', phone: '91 88 96 11 00', email: 'complaints.mvd@kerala.gov.in' },
@@ -1211,6 +1231,7 @@ const CITIES = {
     state:        'Kerala',
     country:      'India',
     countryCode:  'IN',
+    stateCode:    'KL',
     currencyCode: 'INR',
     currencySymbol: '\u20b9',
     mapCenter:    { lat: 11.2588, lng: 75.7804 },
@@ -1226,7 +1247,7 @@ const CITIES = {
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
-      STANDSTILL_FACTOR: 0.90,
+      STANDSTILL_FACTOR: 0.80,
     },
     rtoContact: [
       { label: 'Kerala MVD Helpdesk', phone: '91 88 96 11 00', email: 'complaints.mvd@kerala.gov.in' },
