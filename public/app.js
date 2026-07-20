@@ -23,8 +23,8 @@
    vehicle_reports (see supabase-schema.sql RLS policy), never read or
    modify existing rows. Data is viewed/exported via the Supabase
    dashboard, not through this key. */
-const SUPABASE_URL      = 'REPLACE_WITH_YOUR_SUPABASE_PROJECT_URL';   // e.g. https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';   // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = 'sb_publishable_7GHLx872yuUQcn8lKcDBVw_ehC9Cx6e';
 
 /* ── State ── */
 let mapInstance        = null;
