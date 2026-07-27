@@ -1,0 +1,80 @@
+name: Build Android APK
+
+# Builds a debug APK entirely on GitHub's hosted runners - no local
+# Android Studio needed. A debug build is auto-signed by the Android
+# Gradle Plugin with a well-known, non-secret debug key, which is
+# exactly what you want for sideloading onto your own phone to test.
+# It is NOT suitable for a Play Store release - see the note at the
+# bottom of this file for what changes when you're ready for that.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "capacitor.config.ts"
+      - "package.json"
+      - "android/**"
+      - ".github/workflows/android-build.yml"
+  workflow_dispatch: # lets you trigger a build manually from the Actions tab, no push needed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Sync Capacitor (copies config + web assets into the native project)
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metersahi-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+# ─────────────────────────────────────────────────────────────────
+# WHEN YOU'RE READY FOR AN ACTUAL PLAY STORE RELEASE:
+#
+# A debug APK can be installed on your own phone for testing, but the
+# Play Store requires a RELEASE build signed with your own private
+# keystore - not the shared debug key this workflow uses.
+#
+# This still doesn't require Android Studio. The short version:
+#   1. Generate a keystore once, locally, using `keytool` (comes with
+#      any JDK install - no Android Studio needed):
+#        keytool -genkey -v -keystore metersahi-release.jks
+#          -keyalg RSA -keysize 2048 -validity 10000 -alias metersahi
+#   2. Store that keystore file (base64-encoded) and its passwords as
+#      GitHub Secrets on this repo (Settings -> Secrets and variables
+#      -> Actions) - never commit the keystore file itself.
+#   3. Add a second job to this workflow that decodes the secret,
+#      writes it to android/app/, and runs `./gradlew bundleRelease`
+#      (or assembleRelease) with signing config pointed at it.
+#
+# Come back to me when you want this set up - I'll build the second
+# job and the signing config together, once the debug build above is
+# confirmed working end-to-end.
+# ─────────────────────────────────────────────────────────────────
