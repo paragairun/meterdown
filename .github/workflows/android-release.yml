@@ -73,6 +73,25 @@ jobs:
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           EOF
 
+      - name: Verify keystore actually decoded to something real
+        run: |
+          echo "Decoded keystore file size (should NOT be 0):"
+          ls -la android/app/release.jks
+          FILESIZE=$(stat -c%s android/app/release.jks 2>/dev/null || stat -f%z android/app/release.jks)
+          if [ "$FILESIZE" -lt 100 ]; then
+            echo "::error::release.jks is suspiciously small ($FILESIZE bytes) - ANDROID_KEYSTORE_BASE64 is probably empty or wrong. Check the secret's value in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "Checking keystore.properties has non-empty values (not printing the actual secret values):"
+          for field in storeFile storePassword keyAlias keyPassword; do
+            VALUE=$(grep "^${field}=" android/app/keystore.properties | cut -d= -f2)
+            if [ -z "$VALUE" ]; then
+              echo "::error::keystore.properties field '${field}' is empty - the corresponding GitHub Secret is probably not set."
+              exit 1
+            fi
+          done
+          echo "All keystore fields present and non-empty."
+
       - name: Build signed release bundle (.aab)
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
