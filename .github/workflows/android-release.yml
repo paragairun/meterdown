@@ -96,6 +96,18 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
 
+      - name: Verify the .aab is ACTUALLY signed (not just that the keystore was available)
+        run: |
+          AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
+          echo "Checking $AAB_PATH for a real signature..."
+          if ! jarsigner -verify "$AAB_PATH" > /tmp/jarsigner-output.txt 2>&1; then
+            echo "::error::The built .aab is NOT signed, even though the keystore was successfully decoded and populated earlier in this run. This means Gradle picked up the keystore config but did not apply it to the bundleRelease task - a deeper Android Gradle Plugin issue, not a missing-secret problem."
+            cat /tmp/jarsigner-output.txt
+            exit 1
+          fi
+          echo "Confirmed: .aab is genuinely signed."
+          cat /tmp/jarsigner-output.txt
+
       - name: Clean up decoded keystore
         if: always()
         run: rm -f android/app/release.jks android/app/keystore.properties
