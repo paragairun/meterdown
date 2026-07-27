@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Scoped CSP - matches the rest of the site -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com https://www.google-analytics.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+    font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
+    img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com;
+    connect-src 'self' https://routes.googleapis.com https://maps.googleapis.com https://ipapi.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.supabase.co https://cdn.jsdelivr.net;
+    frame-src 'self' https://www.googletagmanager.com;
+    object-src 'none';
+    base-uri 'self';
+    frame-ancestors 'none';
+  "/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Privacy Policy | MeterSahi?</title>
+  <meta name="description" content="How MeterSahi? collects, uses, and protects information across metersahi.in and the MeterSahi? Android app."/>
+  <meta name="robots" content="noindex, follow"/>
+  <link rel="canonical" href="https://metersahi.in/privacy/"/>
+  <meta property="og:type"        content="website"/>
+  <meta property="og:url"         content="https://metersahi.in/privacy/"/>
+  <meta property="og:title"       content="Privacy Policy | MeterSahi?"/>
+  <meta property="og:site_name"   content="MeterSahi?"/>
+  <meta name="theme-color"        content="#1a1a1a"/>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-P4SMHLKF');</script>
+  <!-- End Google Tag Manager -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" integrity="sha384-PwEnNZvp50/uDLtKrd1s2D4Xe/y+fCVtEigigjik/PgHlDXUF1uJ32m7guk/XWYV" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="/style.css"/>
+
+  <style>
+    .privacy-hero {
+      background: var(--black);
+      color: #fff;
+      padding: 40px 0 36px;
+      border-bottom: 2px solid var(--saffron);
+    }
+    .privacy-hero .breadcrumb {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .privacy-hero .breadcrumb a { color: rgba(255,255,255,0.4); text-decoration: none; }
+    .privacy-hero .breadcrumb a:hover { color: var(--saffron); }
+    .privacy-hero .breadcrumb .ti { font-size: 13px; }
+    .privacy-hero h1 {
+      font-size: clamp(22px, 3.5vw, 32px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      margin-bottom: 8px;
+    }
+    .privacy-hero .updated { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+    .privacy-layout { max-width: 760px; margin: 0 auto; padding: 44px 0 64px; }
+    .privacy-layout .article-body h2 {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-primary);
+      margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--saffron); display: inline-block;
+    }
+    .privacy-layout .article-body h2:first-child { margin-top: 0; }
+    .privacy-layout .article-body p { margin-bottom: 16px; color: var(--text-secondary); line-height: 1.75; }
+    .privacy-layout .article-body ul { list-style: none; padding: 0; margin-bottom: 18px; }
+    .privacy-layout .article-body li {
+      position: relative; padding-left: 22px; margin-bottom: 10px; color: var(--text-secondary); line-height: 1.65;
+    }
+    .privacy-layout .article-body li::before {
+      content: ''; position: absolute; left: 0; top: 9px; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--saffron-dk);
+    }
+    .privacy-layout .article-body strong { color: var(--text-primary); font-weight: 600; }
+    .privacy-layout .article-body a { color: var(--saffron-dk); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+    .privacy-layout .article-body a:hover { color: var(--saffron); }
+    .privacy-note {
+      background: var(--surface-2); border: 1px solid var(--border-md); border-radius: var(--radius-md);
+      padding: 16px 18px; margin: 28px 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;
+    }
+    .privacy-note strong { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <!-- ── HEADER ── -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <a href="/" class="brand">
+          <span class="brand-icon">🛺</span>
+          <div>
+            <span class="brand-name">MeterSahi?</span>
+            <span class="brand-sub">Auto Fare Checker</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <a href="/mumbai/" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.7);text-decoration:none;padding:6px 14px;border:0.5px solid rgba(255,255,255,0.2);border-radius:20px;">
+            <i class="ti ti-calculator" style="font-size:14px;vertical-align:-2px;margin-right:4px;color:var(--saffron)"></i>
+            Check fare
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="privacy-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/">Home</a>
+        <i class="ti ti-chevron-right"></i>
+        <span>Privacy Policy</span>
+      </div>
+      <h1>Privacy Policy</h1>
+      <div class="updated">Last updated: 27 July 2026 &nbsp;·&nbsp; Applies to metersahi.in and the MeterSahi? Android app</div>
+    </div>
+  </section>
+
+  <!-- ── MAIN ── -->
+  <div class="container">
+    <div class="privacy-layout">
+      <article class="article-body">
+
+        <p>MeterSahi? ("we", "us", "the app", "the site") helps you check whether an auto-rickshaw or taxi fare matches the official tariff for your city. This policy explains what information the website (metersahi.in) and the Android app collect, why, and how it's handled. The Android app loads metersahi.in directly, so everything below applies equally to both.</p>
+
+        <div class="privacy-note">
+          <strong>The short version:</strong> MeterSahi? has no user accounts, no sign-up, and no login. We don't collect your name, email, or phone number. The main things we do collect are the trip details you type in (to calculate a fare) and, only if you choose to submit them, a vehicle report or feedback.
+        </div>
+
+        <h2>Information We Collect</h2>
+        <p>We collect the following, depending on how you use the app:</p>
+        <ul>
+          <li><strong>Location (optional):</strong> if you tap "use my current location," your device's GPS coordinates are requested through your browser's or Android's standard permission prompt, used once to pre-fill the pickup address, and never stored on our servers. You can deny this and type your pickup address manually instead - the app works identically either way.</li>
+          <li><strong>Trip details you enter:</strong> pickup and drop-off addresses (as free text), city, vehicle type (auto/taxi), whether it's a day or night ride, and luggage count. These are logged each time you press "Calculate correct fare," along with the calculated distance and fare, so we can understand usage patterns and improve the service.</li>
+          <li><strong>Vehicle reports (optional):</strong> if you choose to report a vehicle, we store the number plate, the amount you say you were charged, and the associated trip details from your calculation.</li>
+          <li><strong>Feedback (optional):</strong> if you respond to the feedback prompt, we store your star rating and any text you write, along with which city you were using.</li>
+          <li><strong>Standard technical data:</strong> like most websites and apps, our analytics and infrastructure providers (see below) automatically log things like IP address, device/browser type, and general usage statistics as part of normal operation.</li>
+        </ul>
+        <p>We do <strong>not</strong> collect your name, email address, phone number, contacts, photos, or any government ID. There is no account system, so there's nothing tied to a persistent personal identity beyond what's described above.</p>
+
+        <h2>How We Use This Information</h2>
+        <ul>
+          <li>To calculate the official fare for your route and show you whether a driver's charge matches it.</li>
+          <li>To understand which cities and features are actually used, so we know where to focus effort.</li>
+          <li>To build a record of vehicle reports, which may help identify patterns of overcharging.</li>
+          <li>To improve the app based on the feedback you choose to share.</li>
+        </ul>
+        <p>We do not sell your information to anyone, and we do not use it for advertising or targeting.</p>
+
+        <h2>Third-Party Services We Use</h2>
+        <p>MeterSahi? relies on a small number of external services to function:</p>
+        <ul>
+          <li><strong>Google Maps Platform</strong> (Maps, Places, Routes, Geocoding APIs) - to turn your typed addresses into an actual route, distance, and travel time. Google processes this data under its own <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">privacy policy</a>.</li>
+          <li><strong>Supabase</strong> - our database provider, where trip calculations, vehicle reports, and feedback are stored.</li>
+          <li><strong>Google Analytics / Google Tag Manager</strong> - standard, aggregate website analytics (page views, general usage trends).</li>
+          <li><strong>Google Fonts and a CDN (jsDelivr)</strong> - used to load the site's typography and icons; these may log basic request data (like IP address) as part of normal content delivery, independent of us.</li>
+        </ul>
+
+        <h2>Android App Permissions</h2>
+        <p>The MeterSahi? Android app requests exactly two categories of permission, and nothing else:</p>
+        <ul>
+          <li><strong>Internet access</strong> - required for the app to function at all, since it loads live content and calculates fares over the network.</li>
+          <li><strong>Location (fine and coarse)</strong> - used only for the optional "use my current location" feature described above. If you deny this permission, the app continues to work normally; you'll just enter your pickup address by typing instead.</li>
+        </ul>
+        <p>The app does not request access to your camera, microphone, contacts, storage, SMS, or call history, because it has no features that need any of them.</p>
+
+        <h2>Data Retention</h2>
+        <p>Trip calculations, vehicle reports, and feedback are retained to help us understand usage and improve the service over time. Since there's no account system, we have no way to look up or delete a specific individual's past submissions on request in the way a logged-in service could - if you've submitted something you'd like removed, contact us (below) with as much detail as you can provide (approximate time, city, plate number, etc.) and we'll do our best to locate and remove it.</p>
+
+        <h2>Children's Privacy</h2>
+        <p>MeterSahi? is not directed at children and we do not knowingly collect information from anyone we know to be under 13.</p>
+
+        <h2>Changes to This Policy</h2>
+        <p>We may update this policy as the app changes. Material changes will be reflected by updating the "last updated" date above.</p>
+
+        <h2>Contact</h2>
+        <p>Questions about this policy, or a request related to your data, can be sent to <a href="mailto:parag.airun@gmail.com">parag.airun@gmail.com</a>.</p>
+
+        <div class="privacy-note">
+          This policy is written to accurately describe what MeterSahi? actually does, but it is general information, not legal advice, and hasn't been reviewed by a lawyer. If you have specific compliance requirements (for a business, a regulated context, or a jurisdiction with particular rules), please have it reviewed independently before relying on it.
+        </div>
+
+      </article>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="/mumbai/">Mumbai</a>
+        <a href="/delhi/">Delhi</a>
+        <a href="/bengaluru/">Bengaluru</a>
+        <a href="/hyderabad/">Hyderabad</a>
+        <a href="/pune/">Pune</a>
+        <a href="/kochi/">Kochi</a>
+        <a href="/kolkata/">Kolkata</a>
+        <a href="/chennai/">Chennai</a>
+        <a href="/ahmedabad/">Ahmedabad</a>
+        <a href="/goa/">Goa</a>
+        <a href="/gangtok/">Gangtok</a>
+      </div>
+      <p><a href="/privacy/">Privacy Policy</a></p>
+      <p style="margin-top:6px">© 2026 MeterSahi? &nbsp;·&nbsp; <a href="https://metersahi.in/">metersahi.in</a></p>
+      <p class="site-footer-credit">made with love by <a href="mailto:parag.airun@gmail.com">parag.airun@gmail.com</a></p>
+    </div>
+  </footer>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZP9JS7LCFS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-ZP9JS7LCFS');
+  </script>
+
+</body>
+</html>
