@@ -1,36 +1,41 @@
-name: Release to Play Store
+name: Build Signed Release AAB
 
-# Builds a SIGNED release .aab and uploads it to Google Play Console.
-# Deliberately manual-only (workflow_dispatch) - a Play Store release
-# should never happen automatically just because someone pushed to
-# main. You trigger this yourself, from the Actions tab, whenever
-# you're actually ready to ship a release.
+# Builds a SIGNED release .aab and makes it available as a downloadable
+# artifact - no Play Console upload, no service account needed. You
+# download the file from this workflow's run page and upload it to
+# Play Console yourself, whenever and however you choose.
+#
+# Manual trigger only (workflow_dispatch) - a signed release build
+# should be a deliberate action, not something that happens on every
+# push to main.
 #
 # ─────────────────────────────────────────────────────────────────
-# ONE-TIME SETUP REQUIRED BEFORE THIS CAN WORK - see the full
-# checklist at the bottom of this file. Short version: you need a
-# release keystore, a Play Console app listing that's already been
-# through at least one MANUAL upload, and a Play Console API service
-# account. None of these can be automated - Google requires a human
-# to do the first release and fill in store listing details.
+# ONE-TIME SETUP REQUIRED - just the keystore, nothing Play-Console-
+# related:
+#
+# 1. Generate a release keystore once, locally (any JDK, no Android
+#    Studio needed):
+#      keytool -genkey -v -keystore metersahi-release.jks \
+#        -keyalg RSA -keysize 2048 -validity 10000 -alias metersahi
+#    STORE THIS FILE SAFELY, OUTSIDE GIT. If you lose it, you can
+#    never update an already-published app under the same signature.
+#
+# 2. Add these 4 GitHub Secrets (repo Settings -> Secrets and
+#    variables -> Actions -> New repository secret):
+#      ANDROID_KEYSTORE_BASE64   = output of: base64 -w0 metersahi-release.jks
+#      ANDROID_KEYSTORE_PASSWORD = the keystore password you set in step 1
+#      ANDROID_KEY_ALIAS         = metersahi (or whatever alias you used)
+#      ANDROID_KEY_PASSWORD      = the key password you set in step 1
+#
+# That's it - no Play Console service account, no Play Console setup
+# at all required for this workflow to work.
 # ─────────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
-    inputs:
-      track:
-        description: "Play Console release track"
-        required: true
-        default: "internal"
-        type: choice
-        options:
-          - internal
-          - alpha
-          - beta
-          - production
 
 jobs:
-  release:
+  build-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -72,71 +77,22 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
 
-      # Belt-and-suspenders - the runner is destroyed after this job
-      # anyway, but no reason to leave the keystore sitting around for
-      # the rest of the job's duration.
       - name: Clean up decoded keystore
         if: always()
         run: rm -f android/app/release.jks android/app/keystore.properties
 
-      - name: Upload to Play Console
-        uses: r0adkll/upload-google-play@v1
+      - name: Upload signed AAB as a downloadable artifact
+        uses: actions/upload-artifact@v4
         with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
-          packageName: in.metersahi.app
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          tracks: ${{ inputs.track }}
-          status: draft
-          # status: draft means the release is uploaded but NOT
-          # auto-published - you still hit "Publish" yourself inside
-          # Play Console. Change to "completed" once you trust this
-          # pipeline and want it to publish automatically. Recommend
-          # leaving this as "draft" for a good while first.
+          name: metersahi-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
 
 # ─────────────────────────────────────────────────────────────────
-# ONE-TIME SETUP CHECKLIST (do these once, in this order - all of
-# this happens outside GitHub, no Android Studio needed for any of it):
-#
-# 1. GENERATE YOUR RELEASE KEYSTORE (any machine with a JDK installed):
-#      keytool -genkey -v -keystore metersahi-release.jks \
-#        -keyalg RSA -keysize 2048 -validity 10000 -alias metersahi
-#    You'll be asked to set a keystore password and a key password -
-#    remember these, you'll need them for step 3.
-#    STORE THIS FILE SAFELY, OUTSIDE GIT ENTIRELY. If you lose it, you
-#    can NEVER update this app again under this Play Store listing -
-#    you'd have to publish as a brand new app from scratch.
-#
-# 2. CREATE THE PLAY CONSOLE APP LISTING (play.google.com/console):
-#    - Requires a one-time $25 Google Play Developer account fee if
-#      you don't already have one.
-#    - Create a new app, package name in.metersahi.app, fill in the
-#      store listing (description, screenshots, content rating
-#      questionnaire, privacy policy URL, etc.) - this part is
-#      unavoidably manual, Google requires a human to complete it.
-#    - Build ONE local release .aab (using the keystore.properties
-#      pattern above, done locally) and upload it manually through
-#      the Play Console website, to the "Internal testing" track.
-#      This first upload MUST be manual - the API can't create an
-#      app's very first release.
-#
-# 3. CREATE A SERVICE ACCOUNT FOR API ACCESS:
-#    - Google Cloud Console -> IAM & Admin -> Service Accounts ->
-#      Create Service Account.
-#    - Play Console -> Setup -> API access -> link that service
-#      account -> grant it "Release manager" permission (or similar -
-#      needs release-upload rights, not full admin).
-#    - Download its JSON key file.
-#
-# 4. ADD THESE AS GITHUB SECRETS (repo Settings -> Secrets and
-#    variables -> Actions -> New repository secret):
-#      ANDROID_KEYSTORE_BASE64      = output of: base64 -w0 metersahi-release.jks
-#      ANDROID_KEYSTORE_PASSWORD    = the keystore password from step 1
-#      ANDROID_KEY_ALIAS            = metersahi (or whatever alias you used)
-#      ANDROID_KEY_PASSWORD         = the key password from step 1
-#      PLAY_STORE_SERVICE_ACCOUNT_JSON = the full contents of the JSON file from step 3
-#
-# Once all of this is in place, this workflow becomes runnable from
-# the Actions tab. Every release after the first is fully automatable
-# from here - only the very first one required the manual Play
-# Console steps above.
+# TO ACTUALLY PUBLISH: download the .aab from this run's Artifacts
+# section, then go to Play Console -> your app -> Testing (or
+# Production) -> Create new release -> upload it there directly.
+# Same manual process every time, fully under your control - no
+# automated upload, no service account, nothing to misconfigure on
+# that front ever again.
 # ─────────────────────────────────────────────────────────────────
