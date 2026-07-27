@@ -4,9 +4,15 @@ name: Build Signed Release AAB
 #
 # The alias is read directly out of the keystore file itself, not from
 # a separate secret you have to type correctly. Your keystore only has
-# one entry in it, so there's nothing to disambiguate - this removes
-# an entire class of "the alias secret doesn't quite match" bugs by
-# not needing a human to correctly transcribe it in the first place.
+# one entry in it, so there's nothing to disambiguate.
+#
+# The store password is used for BOTH the keystore and the private key
+# unlock - not a shortcut, but a correction. PKCS12 keystores (what
+# keytool creates by default) don't actually support a distinct
+# per-key password the way the older JKS format did; keytool silently
+# accepts two different values at creation time, but only the store
+# password ever really works. This was confirmed directly against the
+# real keystore before being fixed here.
 #
 # No Play Console upload, no service account. Download the signed .aab
 # from this run's Artifacts and upload it to Play Console yourself.
@@ -14,11 +20,12 @@ name: Build Signed Release AAB
 # Manual trigger only (workflow_dispatch).
 #
 # ─────────────────────────────────────────────────────────────────
-# ONE-TIME SETUP - only 3 secrets now (ANDROID_KEY_ALIAS is no longer
-# needed at all):
-#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-#   ANDROID_KEY_PASSWORD
+# ONE-TIME SETUP - only 2 secrets needed:
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD
 # (repo Settings -> Secrets and variables -> Actions)
+#
+# ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD are no longer used at all
+# - safe to delete those two secrets if you still have them set.
 # ─────────────────────────────────────────────────────────────────
 
 on:
@@ -70,12 +77,11 @@ jobs:
       - name: Sign the .aab directly with jarsigner (alias auto-detected from the keystore)
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
 
-          if [ -z "$STORE_PASS" ] || [ -z "$KEY_PASS" ]; then
-            echo "::error::ANDROID_KEYSTORE_PASSWORD or ANDROID_KEY_PASSWORD is empty. Check these secrets in Settings > Secrets and variables > Actions."
+          if [ -z "$STORE_PASS" ]; then
+            echo "::error::ANDROID_KEYSTORE_PASSWORD is empty. Check this secret in Settings > Secrets and variables > Actions."
             exit 1
           fi
 
@@ -84,17 +90,28 @@ jobs:
           REAL_ALIAS=$(keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS" 2>/dev/null | grep "PrivateKeyEntry" | cut -d, -f1)
 
           if [ -z "$REAL_ALIAS" ]; then
-            echo "::error::Could not find any PrivateKeyEntry in the keystore at all. Either ANDROID_KEYSTORE_PASSWORD is wrong (jarsigner/keytool would fail to even open the keystore), or the keystore file itself doesn't contain what we expect."
+            echo "::error::Could not find any PrivateKeyEntry in the keystore at all. ANDROID_KEYSTORE_PASSWORD is probably wrong."
             exit 1
           fi
 
           echo "Signing with the keystore's own alias (auto-detected, not hardcoded)."
 
+          # CONFIRMED ROOT CAUSE (found by testing directly against the
+          # real keystore): PKCS12-format keystores - what keytool
+          # creates by default - do not actually support a private-key
+          # password distinct from the store password. keytool silently
+          # accepts two different values at creation time, but only the
+          # store password ever really unlocks the key. Using a
+          # separate ANDROID_KEY_PASSWORD here (even though it was
+          # correctly set) caused every single signing attempt to fail
+          # with a confusing "not a private key" error. The store
+          # password is deliberately used for BOTH arguments below -
+          # this is correct, not a shortcut.
           jarsigner -verbose \
             -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore android/app/release.jks \
             -storepass "$STORE_PASS" \
-            -keypass "$KEY_PASS" \
+            -keypass "$STORE_PASS" \
             "$AAB_PATH" \
             "$REAL_ALIAS"
 
@@ -102,7 +119,7 @@ jobs:
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
           if ! jarsigner -verify "$AAB_PATH" > /tmp/jarsigner-output.txt 2>&1; then
-            echo "::error::The .aab is still not signed. Something is genuinely wrong with the keystore or ANDROID_KEY_PASSWORD."
+            echo "::error::The .aab is still not signed. Something is genuinely wrong with the keystore or ANDROID_KEYSTORE_PASSWORD."
             cat /tmp/jarsigner-output.txt
             exit 1
           fi
