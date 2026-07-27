@@ -16,59 +16,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-
-    // Release signing - reads from keystore.properties, which is
-    // NEVER committed to the repo (see android/.gitignore). Locally,
-    // you'd create this file yourself pointing at your own keystore.
-    // In CI, the release workflow generates it fresh from GitHub
-    // Secrets on every run, then discards it when the job ends.
-    //
-    // IMPORTANT: if you're building a RELEASE task (bundleRelease,
-    // assembleRelease) and this file is missing, the build now FAILS
-    // LOUDLY instead of silently producing an unsigned bundle. The
-    // previous version of this file didn't do that - it silently
-    // skipped signing whenever the file wasn't found, which is
-    // exactly how an unsigned .aab got uploaded to Play Console
-    // without any error until Play Store itself rejected it days
-    // later. Debug builds are completely unaffected either way - this
-    // check only fires for release-related tasks.
-    def keystorePropertiesFile = rootProject.file("app/keystore.properties")
-    def keystoreProperties = new Properties()
-    def isReleaseTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
-    def hasSigningConfig = keystorePropertiesFile.exists()
-
-    if (hasSigningConfig) {
-        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-    } else if (isReleaseTask) {
-        throw new GradleException(
-            "Building a RELEASE bundle/APK requires android/app/keystore.properties to " +
-            "exist (with storeFile/storePassword/keyAlias/keyPassword) but it was not " +
-            "found. This file is never committed to the repo - in CI it must be generated " +
-            "fresh from GitHub Secrets before this build step runs (see the 'Write " +
-            "keystore.properties' step in .github/workflows/android-release.yml). If " +
-            "you're building locally, you need to create this file yourself, pointing at " +
-            "your own release keystore."
-        )
-    }
-
-    if (hasSigningConfig) {
-        signingConfigs {
-            release {
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-            }
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (hasSigningConfig) {
-                signingConfig signingConfigs.release
-            }
+            // No signingConfig here on purpose. bundleRelease produces
+            // an unsigned .aab; the release workflow signs it directly
+            // with jarsigner as a separate, explicit step right after
+            // the build - see .github/workflows/android-release.yml.
+            // Gradle's own signingConfig mechanism was the source of
+            // an unresolved bug where the keystore was correctly
+            // available but never actually got applied to the
+            // bundleRelease task specifically - this sidesteps that
+            // entirely rather than continuing to chase it.
         }
     }
 }
