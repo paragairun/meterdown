@@ -23,7 +23,7 @@
    vehicle_reports (see supabase-schema.sql RLS policy), never read or
    modify existing rows. Data is viewed/exported via the Supabase
    dashboard, not through this key. */
-const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';   // e.g. https://xxxxx.supabase.co
+const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_7GHLx872yuUQcn8lKcDBVw_ehC9Cx6e';
 
 /* ── State ── */
@@ -296,6 +296,8 @@ window.calculateFare = function () {
   const pickup  = document.getElementById('pickup').value.trim();
   const dropoff = document.getElementById('dropoff').value.trim();
   if (!pickup || !dropoff) { alert('Please enter both pickup and drop-off.'); return; }
+
+  scheduleFeedbackDialog();
 
   const isNight     = document.getElementById('ride-time').value === 'night';
   const luggage     = parseInt(document.getElementById('luggage').value, 10);
@@ -791,6 +793,138 @@ function hideResults() {
 }
 
 /* ════════════════════════════════════════════
+   FEEDBACK DIALOG
+   Appears 7s after "Calculate correct fare" is
+   pressed. Suppressed for a while after being
+   submitted or dismissed, so it doesn't nag on
+   every single calculation.
+   ════════════════════════════════════════════ */
+const FEEDBACK_STORAGE_KEY = 'ms_feedback_status';
+const FEEDBACK_DELAY_MS = 7000;
+const FEEDBACK_DISMISS_SUPPRESS_DAYS = 14;
+const FEEDBACK_SUBMIT_SUPPRESS_DAYS  = 180;
+let feedbackTimer = null;
+let feedbackSelectedStars = 0;
+
+function getFeedbackStatus() {
+  try {
+    const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    return null; // localStorage unavailable (private browsing etc.) - just don't suppress
+  }
+}
+
+function setFeedbackStatus(status) {
+  try {
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify({ status, at: Date.now() }));
+  } catch (err) {
+    // Silently ignore - worst case the dialog shows again next time
+  }
+}
+
+function isFeedbackSuppressed() {
+  const record = getFeedbackStatus();
+  if (!record) return false;
+  const daysSince = (Date.now() - record.at) / (1000 * 60 * 60 * 24);
+  if (record.status === 'submitted') return daysSince < FEEDBACK_SUBMIT_SUPPRESS_DAYS;
+  if (record.status === 'dismissed') return daysSince < FEEDBACK_DISMISS_SUPPRESS_DAYS;
+  return false;
+}
+
+function scheduleFeedbackDialog() {
+  if (isFeedbackSuppressed()) return;
+  if (feedbackTimer) clearTimeout(feedbackTimer); // one clean attempt per calculation
+  feedbackTimer = setTimeout(showFeedbackDialog, FEEDBACK_DELAY_MS);
+}
+
+function showFeedbackDialog() {
+  if (isFeedbackSuppressed()) return; // re-check in case it was just handled
+  const overlay = document.getElementById('feedback-dialog-overlay');
+  if (!overlay || overlay.style.display === 'flex') return; // already open
+  overlay.style.display = 'flex';
+}
+
+window.dismissFeedbackDialog = function () {
+  document.getElementById('feedback-dialog-overlay').style.display = 'none';
+  setFeedbackStatus('dismissed');
+};
+
+window.submitFeedback = function () {
+  if (feedbackSelectedStars < 1) return;
+  const textInput = document.getElementById('feedback-text-input');
+  const submitBtn = document.getElementById('feedback-dialog-submit');
+  const thanksBox = document.getElementById('feedback-dialog-thanks');
+  submitBtn.disabled = true;
+
+  const payload = {
+    city_slug:     CITY_SLUG,
+    rating:        feedbackSelectedStars,
+    feedback_text: (textInput.value || '').trim() || null,
+  };
+
+  fetch(`${SUPABASE_URL}/rest/v1/user_feedback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(payload),
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('Feedback insert failed: ' + res.status);
+      setFeedbackStatus('submitted');
+      document.querySelector('.feedback-dialog h3').style.display = 'none';
+      document.querySelector('.feedback-dialog-sub').style.display = 'none';
+      document.getElementById('feedback-star-row').style.display = 'none';
+      textInput.style.display = 'none';
+      submitBtn.style.display = 'none';
+      thanksBox.style.display = 'flex';
+      setTimeout(function () {
+        const overlay = document.getElementById('feedback-dialog-overlay');
+        if (overlay) overlay.style.display = 'none';
+      }, 1800);
+    })
+    .catch(function (err) {
+      console.warn('Feedback submission failed:', err);
+      submitBtn.disabled = false; // let them retry
+    });
+};
+
+function initFeedbackStars() {
+  const row = document.getElementById('feedback-star-row');
+  if (!row) return;
+  const stars = Array.from(row.querySelectorAll('.feedback-star'));
+
+  function paint(count) {
+    stars.forEach(function (s) {
+      s.classList.toggle('filled', parseInt(s.dataset.star, 10) <= count);
+    });
+  }
+
+  stars.forEach(function (star) {
+    star.addEventListener('mouseenter', function () { paint(parseInt(star.dataset.star, 10)); });
+    star.addEventListener('click', function () {
+      feedbackSelectedStars = parseInt(star.dataset.star, 10);
+      paint(feedbackSelectedStars);
+      document.getElementById('feedback-dialog-submit').disabled = false;
+    });
+  });
+  row.addEventListener('mouseleave', function () { paint(feedbackSelectedStars); });
+
+  // Click the dimmed backdrop (not the dialog card itself) to dismiss,
+  // same pattern as the city dropdown and searchable-select panels.
+  const overlay = document.getElementById('feedback-dialog-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) dismissFeedbackDialog();
+    });
+  }
+}
+
+/* ════════════════════════════════════════════
    AUTO-SET NIGHT/DAY BASED ON CURRENT TIME
    ════════════════════════════════════════════ */
 function autoSetRideTime() {
@@ -805,6 +939,7 @@ function autoSetRideTime() {
 document.addEventListener('DOMContentLoaded', () => {
   buildCityDropdown();
   autoSetRideTime();
+  initFeedbackStars();
   ['pickup','dropoff','actual-fare','wait-min','wait-sec'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('keydown', e => { if (e.key==='Enter'){e.preventDefault();calculateFare();} });
