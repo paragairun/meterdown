@@ -68,6 +68,17 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
 
+      - name: List the actual alias(es) in the keystore
+        env:
+          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          echo "Aliases actually present in android/app/release.jks:"
+          keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS"
+          echo ""
+          echo "Compare the alias name above against your ANDROID_KEY_ALIAS secret's value."
+          echo "Also confirm the entry type says 'PrivateKeyEntry', not 'trustedCertEntry' -"
+          echo "jarsigner needs a private key entry specifically, not just a certificate."
+
       - name: Sign the .aab directly with jarsigner
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
