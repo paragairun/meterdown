@@ -1,22 +1,23 @@
 name: Build Signed Release AAB
 
-# Builds a release .aab, then signs it DIRECTLY with jarsigner as an
-# explicit step - not through Gradle's signingConfig mechanism, which
-# was the source of an unresolved bug: the keystore was correctly
-# available to Gradle, but never actually got applied to the
-# bundleRelease task. This sidesteps that entirely by taking direct
-# control of signing instead of relying on Gradle to do it internally.
+# Builds a release .aab, then signs it DIRECTLY with jarsigner.
 #
-# No Play Console upload, no service account. You download the signed
-# .aab from this run's Artifacts and upload it to Play Console
-# yourself.
+# The alias is read directly out of the keystore file itself, not from
+# a separate secret you have to type correctly. Your keystore only has
+# one entry in it, so there's nothing to disambiguate - this removes
+# an entire class of "the alias secret doesn't quite match" bugs by
+# not needing a human to correctly transcribe it in the first place.
+#
+# No Play Console upload, no service account. Download the signed .aab
+# from this run's Artifacts and upload it to Play Console yourself.
 #
 # Manual trigger only (workflow_dispatch).
 #
 # ─────────────────────────────────────────────────────────────────
-# ONE-TIME SETUP - same 4 secrets as before, nothing new needed:
+# ONE-TIME SETUP - only 3 secrets now (ANDROID_KEY_ALIAS is no longer
+# needed at all):
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-#   ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   ANDROID_KEY_PASSWORD
 # (repo Settings -> Secrets and variables -> Actions)
 # ─────────────────────────────────────────────────────────────────
 
@@ -55,8 +56,6 @@ jobs:
 
       - name: Verify keystore actually decoded to something real
         run: |
-          echo "Decoded keystore file size (should NOT be 0):"
-          ls -la android/app/release.jks
           FILESIZE=$(stat -c%s android/app/release.jks 2>/dev/null || stat -f%z android/app/release.jks)
           if [ "$FILESIZE" -lt 100 ]; then
             echo "::error::release.jks is suspiciously small ($FILESIZE bytes) - ANDROID_KEYSTORE_BASE64 is probably empty or wrong."
@@ -68,56 +67,42 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
 
-      - name: Check whether ANDROID_KEY_ALIAS actually matches the keystore
+      - name: Sign the .aab directly with jarsigner (alias auto-detected from the keystore)
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          # GitHub automatically masks any log text that matches a
-          # secret's value, wherever it appears - so printing the raw
-          # alias (which IS the ANDROID_KEY_ALIAS secret) always shows
-          # as *** even in unrelated output. Comparing programmatically
-          # and printing only the yes/no RESULT sidesteps that, since
-          # "match"/"mismatch" aren't secret values themselves.
-          ACTUAL_ALIAS=$(keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS" 2>/dev/null | grep "PrivateKeyEntry" | cut -d, -f1)
-
-          if [ "$ACTUAL_ALIAS" = "metersahi" ]; then
-            echo "The keystore's real alias matches 'metersahi' (the default the Generate Release Keystore workflow used)."
-          else
-            echo "The keystore's real alias does NOT match 'metersahi' - it was set to something else."
-          fi
-
-          if [ "$ACTUAL_ALIAS" = "$KEY_ALIAS" ]; then
-            echo "MATCH: your ANDROID_KEY_ALIAS secret correctly matches the keystore's actual alias."
-          else
-            echo "::error::MISMATCH - your ANDROID_KEY_ALIAS secret does NOT match the keystore's actual alias. This is the cause of the 'not a private key' error. Update the ANDROID_KEY_ALIAS secret to match what's actually in the keystore."
-            exit 1
-          fi
-
-      - name: Sign the .aab directly with jarsigner
-        env:
-          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
-          if [ -z "$STORE_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
-            echo "::error::One of ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, or ANDROID_KEY_PASSWORD is empty. Check these secrets in Settings > Secrets and variables > Actions."
+
+          if [ -z "$STORE_PASS" ] || [ -z "$KEY_PASS" ]; then
+            echo "::error::ANDROID_KEYSTORE_PASSWORD or ANDROID_KEY_PASSWORD is empty. Check these secrets in Settings > Secrets and variables > Actions."
             exit 1
           fi
+
+          # Read the real alias directly from the keystore, instead of
+          # trusting a separately-typed secret to match it exactly.
+          REAL_ALIAS=$(keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS" 2>/dev/null | grep "PrivateKeyEntry" | cut -d, -f1)
+
+          if [ -z "$REAL_ALIAS" ]; then
+            echo "::error::Could not find any PrivateKeyEntry in the keystore at all. Either ANDROID_KEYSTORE_PASSWORD is wrong (jarsigner/keytool would fail to even open the keystore), or the keystore file itself doesn't contain what we expect."
+            exit 1
+          fi
+
+          echo "Signing with the keystore's own alias (auto-detected, not hardcoded)."
+
           jarsigner -verbose \
             -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore android/app/release.jks \
             -storepass "$STORE_PASS" \
             -keypass "$KEY_PASS" \
             "$AAB_PATH" \
-            "$KEY_ALIAS"
+            "$REAL_ALIAS"
 
       - name: Verify the .aab is ACTUALLY signed
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
           if ! jarsigner -verify "$AAB_PATH" > /tmp/jarsigner-output.txt 2>&1; then
-            echo "::error::The .aab is still not signed after the explicit jarsigner step. Something is genuinely wrong with the keystore/credentials."
+            echo "::error::The .aab is still not signed. Something is genuinely wrong with the keystore or ANDROID_KEY_PASSWORD."
             cat /tmp/jarsigner-output.txt
             exit 1
           fi
