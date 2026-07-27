@@ -18,9 +18,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "astro": "^7.0.7"
+    "astro": "^7.0.7",
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2"
   },
   "devDependencies": {
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "@capacitor/cli": "^8.4.2"
   }
 }
