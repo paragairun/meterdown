@@ -56,25 +56,11 @@ jobs:
           retention-days: 30
 
 # ─────────────────────────────────────────────────────────────────
-# WHEN YOU'RE READY FOR AN ACTUAL PLAY STORE RELEASE:
-#
-# A debug APK can be installed on your own phone for testing, but the
-# Play Store requires a RELEASE build signed with your own private
-# keystore - not the shared debug key this workflow uses.
-#
-# This still doesn't require Android Studio. The short version:
-#   1. Generate a keystore once, locally, using `keytool` (comes with
-#      any JDK install - no Android Studio needed):
-#        keytool -genkey -v -keystore metersahi-release.jks
-#          -keyalg RSA -keysize 2048 -validity 10000 -alias metersahi
-#   2. Store that keystore file (base64-encoded) and its passwords as
-#      GitHub Secrets on this repo (Settings -> Secrets and variables
-#      -> Actions) - never commit the keystore file itself.
-#   3. Add a second job to this workflow that decodes the secret,
-#      writes it to android/app/, and runs `./gradlew bundleRelease`
-#      (or assembleRelease) with signing config pointed at it.
-#
-# Come back to me when you want this set up - I'll build the second
-# job and the signing config together, once the debug build above is
-# confirmed working end-to-end.
+# FOR PLAY STORE RELEASES:
+# See .github/workflows/android-release.yml - a separate, manual-only
+# workflow that builds a signed release bundle and uploads it to Play
+# Console. Deliberately kept separate from this file: this one runs
+# automatically on every push (fine, it's just a test build); that one
+# only ever runs when you explicitly trigger it (as it should, for
+# anything that touches your real Play Store listing).
 # ─────────────────────────────────────────────────────────────────
