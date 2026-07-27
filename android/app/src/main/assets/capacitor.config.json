@@ -1,0 +1,24 @@
+{
+	"appId": "in.metersahi.app",
+	"appName": "MeterSahi?",
+	"webDir": "www",
+	"server": {
+		"url": "https://metersahi.in",
+		"cleartext": false,
+		"allowNavigation": [
+			"metersahi.in",
+			"*.metersahi.in",
+			"*.googleapis.com",
+			"*.google.com",
+			"*.gstatic.com",
+			"*.supabase.co",
+			"*.google-analytics.com",
+			"*.googletagmanager.com",
+			"*.analytics.google.com",
+			"cdn.jsdelivr.net"
+		]
+	},
+	"android": {
+		"allowMixedContent": false
+	}
+}
