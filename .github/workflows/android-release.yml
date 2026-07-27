@@ -68,16 +68,31 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon
 
-      - name: List the actual alias(es) in the keystore
+      - name: Check whether ANDROID_KEY_ALIAS actually matches the keystore
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          echo "Aliases actually present in android/app/release.jks:"
-          keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS"
-          echo ""
-          echo "Compare the alias name above against your ANDROID_KEY_ALIAS secret's value."
-          echo "Also confirm the entry type says 'PrivateKeyEntry', not 'trustedCertEntry' -"
-          echo "jarsigner needs a private key entry specifically, not just a certificate."
+          # GitHub automatically masks any log text that matches a
+          # secret's value, wherever it appears - so printing the raw
+          # alias (which IS the ANDROID_KEY_ALIAS secret) always shows
+          # as *** even in unrelated output. Comparing programmatically
+          # and printing only the yes/no RESULT sidesteps that, since
+          # "match"/"mismatch" aren't secret values themselves.
+          ACTUAL_ALIAS=$(keytool -list -keystore android/app/release.jks -storepass "$STORE_PASS" 2>/dev/null | grep "PrivateKeyEntry" | cut -d, -f1)
+
+          if [ "$ACTUAL_ALIAS" = "metersahi" ]; then
+            echo "The keystore's real alias matches 'metersahi' (the default the Generate Release Keystore workflow used)."
+          else
+            echo "The keystore's real alias does NOT match 'metersahi' - it was set to something else."
+          fi
+
+          if [ "$ACTUAL_ALIAS" = "$KEY_ALIAS" ]; then
+            echo "MATCH: your ANDROID_KEY_ALIAS secret correctly matches the keystore's actual alias."
+          else
+            echo "::error::MISMATCH - your ANDROID_KEY_ALIAS secret does NOT match the keystore's actual alias. This is the cause of the 'not a private key' error. Update the ANDROID_KEY_ALIAS secret to match what's actually in the keystore."
+            exit 1
+          fi
 
       - name: Sign the .aab directly with jarsigner
         env:
