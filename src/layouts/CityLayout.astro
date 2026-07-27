@@ -608,6 +608,29 @@ const faqJsonLd = {
     </div>
   </footer>
 
+  <!-- Feedback dialog - shown 7s after "Calculate correct fare" is
+       pressed (see triggerFeedbackDialog() in app.js). Fixed overlay,
+       independent of scroll position/page content. -->
+  <div id="feedback-dialog-overlay" class="feedback-dialog-overlay" style="display:none">
+    <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedback-dialog-title">
+      <button type="button" class="feedback-dialog-close" onclick="dismissFeedbackDialog()" aria-label="Close">
+        <i class="ti ti-x"></i>
+      </button>
+      <h3 id="feedback-dialog-title">How's MeterSahi working for you?</h3>
+      <p class="feedback-dialog-sub">Your feedback helps us improve.</p>
+      <div class="feedback-star-row" id="feedback-star-row">
+        <button type="button" class="feedback-star" data-star="1" aria-label="1 star"><i class="ti ti-star-filled"></i></button>
+        <button type="button" class="feedback-star" data-star="2" aria-label="2 stars"><i class="ti ti-star-filled"></i></button>
+        <button type="button" class="feedback-star" data-star="3" aria-label="3 stars"><i class="ti ti-star-filled"></i></button>
+        <button type="button" class="feedback-star" data-star="4" aria-label="4 stars"><i class="ti ti-star-filled"></i></button>
+        <button type="button" class="feedback-star" data-star="5" aria-label="5 stars"><i class="ti ti-star-filled"></i></button>
+      </div>
+      <textarea id="feedback-text-input" class="feedback-text-input" placeholder="Anything you'd like to tell us? (optional)" rows="3"></textarea>
+      <button type="button" class="feedback-dialog-submit" id="feedback-dialog-submit" onclick="submitFeedback()" disabled>Submit feedback</button>
+      <div id="feedback-dialog-thanks" class="feedback-dialog-thanks" style="display:none"><i class="ti ti-circle-check"></i> Thanks for your feedback!</div>
+    </div>
+  </div>
+
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P4SMHLKF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
