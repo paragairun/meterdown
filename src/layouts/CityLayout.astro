@@ -67,7 +67,7 @@ const hasTaxi = !isTaxiPrimary && !!city.taxiTariff;
 const T = city.tariff;
 
 const vehicleLabel = isTaxiPrimary ? 'Taxi' : 'Taxi & Auto Rickshaw';
-const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'taxi & auto';
+const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'auto';
 const vehicleMeterLabel = isTaxiPrimary ? 'Taxi' : 'Auto';
 
 const nightPct = Math.round((T.NIGHT_MULTIPLIER - 1) * 100);
@@ -211,7 +211,7 @@ const faqJsonLd = {
           <span class="brand-icon">🛺</span>
           <div>
             <span class="brand-name">MeterSahi?</span>
-            <span class="brand-sub">Auto Fare Checker</span>
+            <span class="brand-sub">Taxi & Auto Fare Checker</span>
           </div>
         </a>
         <div class="header-right">
@@ -483,7 +483,7 @@ const faqJsonLd = {
   <!-- TARIFF TABLE -->
   <section class="tariff-section" id="tariff">
     <div class="container" data-nosnippet>
-      <h2 class="section-heading">{city.name} {vehicleLabel} Fare Chart {city.tariffDate}</h2>
+      <h2 class="section-heading">{city.name} {vehicleMeterLabel} Fare Chart {city.tariffDate}</h2>
       <p class="section-sub">Official rates as per {regulatorName} — <strong>{city.tariffDate}</strong></p>
       <div class="tariff-table-wrap">
         <table class="tariff-table">
