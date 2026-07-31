@@ -66,7 +66,7 @@ const isTaxiPrimary = city.primaryVehicleType === 'taxi';
 const hasTaxi = !isTaxiPrimary && !!city.taxiTariff;
 const T = city.tariff;
 
-const vehicleLabel = isTaxiPrimary ? 'Taxi' : 'Auto Rickshaw';
+const vehicleLabel = hasTaxi ? 'Taxi & Auto Rickshaw' : 'Auto Rickshaw';
 const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'auto';
 const vehicleMeterLabel = isTaxiPrimary ? 'Taxi' : 'Auto';
 
