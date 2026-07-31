@@ -67,7 +67,7 @@ const hasTaxi = !isTaxiPrimary && !!city.taxiTariff;
 const T = city.tariff;
 
 const vehicleLabel = isTaxiPrimary ? 'Taxi' : 'Taxi & Auto Rickshaw';
-const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'auto';
+const vehicleLabelShort = isTaxiPrimary ? 'taxi' : 'taxi & auto';
 const vehicleMeterLabel = isTaxiPrimary ? 'Taxi' : 'Auto';
 
 const nightPct = Math.round((T.NIGHT_MULTIPLIER - 1) * 100);
