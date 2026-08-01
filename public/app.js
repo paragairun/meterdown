@@ -800,7 +800,7 @@ function hideResults() {
    every single calculation.
    ════════════════════════════════════════════ */
 const FEEDBACK_STORAGE_KEY = 'ms_feedback_status';
-const FEEDBACK_DELAY_MS = 3000;
+const FEEDBACK_DELAY_MS = 5000;
 const FEEDBACK_DISMISS_SUPPRESS_DAYS = 14;
 const FEEDBACK_SUBMIT_SUPPRESS_DAYS  = 180;
 let feedbackTimer = null;
