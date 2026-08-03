@@ -1,0 +1,44 @@
+name: Uptime Check
+
+# Pings metersahi.in every 10 minutes. If it's down, this step fails -
+# and GitHub automatically emails/notifies you whenever a scheduled
+# workflow run fails (Settings > Notifications > Actions, usually on
+# by default). No third-party service, no webhook, nothing else to set
+# up - GitHub's own failure notification IS the alert.
+#
+# Retries 3 times with a short pause before actually failing, so a
+# single transient network blip doesn't trigger a false alarm.
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub can delay/skip very frequent (e.g. every
+    # 5 min) scheduled runs under high load - 10 minutes is reliable.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # lets you trigger a manual check any time from the Actions tab
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check metersahi.in is up
+        run: |
+          URL="https://metersahi.in"
+          MAX_ATTEMPTS=3
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$URL" || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+              echo "Site is up (HTTP $STATUS)."
+              exit 0
+            fi
+
+            if [ "$i" -lt "$MAX_ATTEMPTS" ]; then
+              echo "Not up yet, retrying in 20s..."
+              sleep 20
+            fi
+          done
+
+          echo "::error::metersahi.in did not respond successfully after $MAX_ATTEMPTS attempts (last status: $STATUS). Site may be down."
+          exit 1
