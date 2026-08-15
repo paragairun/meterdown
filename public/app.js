@@ -794,15 +794,31 @@ function hideResults() {
 
 /* ════════════════════════════════════════════
    FEEDBACK DIALOG
-   Appears 7s after "Calculate correct fare" is
-   pressed. Suppressed for a while after being
-   submitted or dismissed, so it doesn't nag on
-   every single calculation.
+   Appears 5s after "Calculate correct fare" is
+   pressed.
+
+   Rules:
+     - Never submitted before, and dismisses: no
+       suppression at all, shows again next visit.
+     - Submits (first time or any time after):
+       suppressed for FEEDBACK_VISITS_COOLDOWN more
+       visits.
+     - Has submitted at LEAST ONCE, ever, and later
+       dismisses: ALSO suppressed for
+       FEEDBACK_VISITS_COOLDOWN visits, same as a
+       submission would. Once someone has told us
+       what they think even once, every subsequent
+       dismissal is treated the same as a submission
+       for cooldown purposes - only a person who has
+       genuinely never submitted gets the
+       show-again-immediately treatment on dismiss.
+
+   "Visits" means calculation attempts, not days -
+   see countVisitAndCheckSuppressed() below.
    ════════════════════════════════════════════ */
 const FEEDBACK_STORAGE_KEY = 'ms_feedback_status';
 const FEEDBACK_DELAY_MS = 5000;
-const FEEDBACK_DISMISS_SUPPRESS_DAYS = 14;
-const FEEDBACK_SUBMIT_SUPPRESS_DAYS  = 180;
+const FEEDBACK_VISITS_COOLDOWN = 10; // used for BOTH submit and (post-first-submit) dismiss
 let feedbackTimer = null;
 let feedbackSelectedStars = 0;
 
@@ -815,31 +831,46 @@ function getFeedbackStatus() {
   }
 }
 
-function setFeedbackStatus(status) {
+function setFeedbackStatus(record) {
   try {
-    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify({ status, at: Date.now() }));
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(record));
   } catch (err) {
     // Silently ignore - worst case the dialog shows again next time
   }
 }
 
-function isFeedbackSuppressed() {
+/**
+ * Called once per "Calculate correct fare" press. Only does something
+ * when there's an active cooldown (status is 'submitted' or
+ * 'dismissed') - counts this visit toward FEEDBACK_VISITS_COOLDOWN and
+ * returns true (still suppressed) until the count is reached, at
+ * which point the cooldown clears but hasSubmittedBefore is
+ * DELIBERATELY preserved - that's what makes every later dismissal
+ * behave like a submission once someone has submitted at least once.
+ */
+function countVisitAndCheckSuppressed() {
   const record = getFeedbackStatus();
-  if (!record) return false;
-  const daysSince = (Date.now() - record.at) / (1000 * 60 * 60 * 24);
-  if (record.status === 'submitted') return daysSince < FEEDBACK_SUBMIT_SUPPRESS_DAYS;
-  if (record.status === 'dismissed') return daysSince < FEEDBACK_DISMISS_SUPPRESS_DAYS;
+  if (!record || !record.status) return false; // no active cooldown
+
+  const visits = (record.visitsSinceAction || 0) + 1;
+  if (visits < FEEDBACK_VISITS_COOLDOWN) {
+    setFeedbackStatus({ ...record, visitsSinceAction: visits });
+    return true; // still cooling down
+  }
+
+  // Cooldown finished - clear the active status/counter, but keep
+  // hasSubmittedBefore intact so future dismissals still cool down too.
+  setFeedbackStatus({ hasSubmittedBefore: !!record.hasSubmittedBefore });
   return false;
 }
 
 function scheduleFeedbackDialog() {
-  if (isFeedbackSuppressed()) return;
+  if (countVisitAndCheckSuppressed()) return;
   if (feedbackTimer) clearTimeout(feedbackTimer); // one clean attempt per calculation
   feedbackTimer = setTimeout(showFeedbackDialog, FEEDBACK_DELAY_MS);
 }
 
 function showFeedbackDialog() {
-  if (isFeedbackSuppressed()) return; // re-check in case it was just handled
   const overlay = document.getElementById('feedback-dialog-overlay');
   if (!overlay || overlay.style.display === 'flex') return; // already open
   overlay.style.display = 'flex';
@@ -847,7 +878,16 @@ function showFeedbackDialog() {
 
 window.dismissFeedbackDialog = function () {
   document.getElementById('feedback-dialog-overlay').style.display = 'none';
-  setFeedbackStatus('dismissed');
+
+  const record = getFeedbackStatus();
+  if (record && record.hasSubmittedBefore) {
+    // They've submitted at least once before, ever - this dismissal
+    // cools down the same as a submission would, not the "always show
+    // again" treatment reserved for people who've never submitted.
+    setFeedbackStatus({ hasSubmittedBefore: true, status: 'dismissed', visitsSinceAction: 0 });
+  }
+  // Otherwise: write nothing. Never having submitted means this
+  // dismissal has no cooldown at all - eligible again next visit.
 };
 
 window.submitFeedback = function () {
@@ -875,7 +915,7 @@ window.submitFeedback = function () {
   })
     .then(function (res) {
       if (!res.ok) throw new Error('Feedback insert failed: ' + res.status);
-      setFeedbackStatus('submitted');
+      setFeedbackStatus({ hasSubmittedBefore: true, status: 'submitted', visitsSinceAction: 0 });
       document.querySelector('.feedback-dialog h3').style.display = 'none';
       document.querySelector('.feedback-dialog-sub').style.display = 'none';
       document.getElementById('feedback-star-row').style.display = 'none';
