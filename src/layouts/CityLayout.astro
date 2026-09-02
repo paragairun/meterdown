@@ -32,15 +32,12 @@ interface City {
   country?: string;         // default 'India' when omitted
   countryCode?: string;     // ISO 3166-1 alpha-2, default 'IN'
   stateCode?: string;       // Indian state RTO code (MH, DL, GJ, etc.) -
-  // used to pre-fill the number plate "State" field on the report form
   currencyCode?: string;    // ISO 4217, default 'INR'
   currencySymbol?: string;  // default '\u20b9'
   regulatorName?: string;   // default '{state} Motor Vehicles Department'
   regulatorShortName?: string; // default 'RTO'
   helplineLabel?: string;   // default 'State Transport Helpline'
-  helplineHint?: string;    // default 'Toll-free' - don't assume this for
-  // non-Indian numbers without verification (e.g. Turkey's "444" numbers
-  // are typically local-rate, not free)
+  helplineHint?: string;    // default 'Toll-free'
   tariffDate: string;
   tariff: Tariff;
   taxiTariffDate?: string;
@@ -48,10 +45,7 @@ interface City {
   rtoContact: RtoContact[];
   onlineComplaint?: { label: string; value: string; hint: string };
   helpline: string;
-  primaryVehicleType?: 'auto' | 'taxi'; // default 'auto'. Cities like Goa/Sikkim
-  // have no auto-rickshaw tariff at all - taxi IS the primary/only vehicle there,
-  // not a secondary toggle. This swaps every "Auto Rickshaw" label to "Taxi"
-  // throughout the page instead of mislabeling a taxi tariff as an auto one.
+  primaryVehicleType?: 'auto' | 'taxi';
 }
 
 interface Props {
@@ -60,9 +54,6 @@ interface Props {
 
 const { city } = Astro.props;
 const isTaxiPrimary = city.primaryVehicleType === 'taxi';
-// hasTaxi controls the Auto/Taxi TOGGLE - only meaningful when a city has BOTH
-// an auto tariff AND a taxi tariff (Mumbai/Pune/Delhi/Kolkata). Taxi-primary
-// cities (Goa/Sikkim) have no toggle - taxi is simply city.tariff directly.
 const hasTaxi = !isTaxiPrimary && !!city.taxiTariff;
 const T = city.tariff;
 
@@ -82,11 +73,6 @@ const nightWindow = `${to12Hour(T.NIGHT_START)} – ${to12Hour(T.NIGHT_END)}`;
 const currency = city.currencySymbol || '\u20b9';
 const regulatorName = city.regulatorName || `${city.state} Motor Vehicles Department`;
 const regulatorShortName = city.regulatorShortName || 'RTO';
-// The 4-part State/District/Series/Number entry is specifically India's
-// RTO plate structure - meaningless for other countries' plates
-// (Thailand's format is completely different, for one). Rather than
-// guess at conventions for countries we haven't researched, non-Indian
-// cities get a plain free-text field instead of a fabricated structure.
 const useIndianPlateFormat = (city.countryCode || 'IN') === 'IN';
 const helplineLabel = city.helplineLabel || 'State Transport Helpline';
 const helplineHint = city.helplineHint || 'Toll-free';
@@ -95,11 +81,6 @@ const isProgressive = !!T.PROGRESSIVE_BANDS;
 const isBanded = isTiered || isProgressive;
 const bands = isTiered ? T.BANDS! : (isProgressive ? T.PROGRESSIVE_BANDS! : []);
 
-// Display values: for flat-rate cities these read directly off the tariff.
-// For banded cities (tiered or progressive), there's no single "per km rate" -
-// we show the first band's flat fare as "starting fare" and the
-// longest-distance band's rate as the "from <currency>X/km" headline,
-// with the full band table shown separately.
 function fmtAmount(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
@@ -155,14 +136,14 @@ const faqJsonLd = {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Scoped CSP - tested on Ahmedabad (staging city) before sitewide rollout -->
+  <!-- Scoped CSP - Updated to allow Monetag and Adsterra -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com https://www.google-analytics.com;
+    script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com https://www.google-analytics.com https://quge5.com https://*.profitableratecpmnetwork.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
     img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com;
-    connect-src 'self' https://routes.googleapis.com https://maps.googleapis.com https://ipapi.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.supabase.co https://cdn.jsdelivr.net;
+    connect-src 'self' https://routes.googleapis.com https://maps.googleapis.com https://ipapi.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.supabase.co https://cdn.jsdelivr.net https://quge5.com https://*.profitableratecpmnetwork.com;
     frame-src 'self' https://www.googletagmanager.com;
     object-src 'none';
     base-uri 'self';
@@ -199,11 +180,13 @@ const faqJsonLd = {
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" integrity="sha384-PwEnNZvp50/uDLtKrd1s2D4Xe/y+fCVtEigigjik/PgHlDXUF1uJ32m7guk/XWYV" crossorigin="anonymous"/>
   <link rel="stylesheet" href="/style.css"/>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4511019454368934"
-     crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4511019454368934" crossorigin="anonymous"></script>
+
+  <!-- Adsterra Script -->
   <script is:inline type="text/javascript" src="https://pl31123255.profitableratecpmnetwork.com/d5/f3/24/d5f3244e9d5251524c39e2198c7817bb.js"></script>
 
-  <script src="https://quge5.com/88/tag.min.js" data-zone="275339" async data-cfasync="false"></script>
+  <!-- Monetag Script (with is:inline added) -->
+  <script is:inline src="https://quge5.com/88/tag.min.js" data-zone="275339" async data-cfasync="false"></script>
 
 </head>
 <body>
@@ -615,9 +598,7 @@ const faqJsonLd = {
     </div>
   </footer>
 
-  <!-- Feedback dialog - shown 7s after "Calculate correct fare" is
-       pressed (see triggerFeedbackDialog() in app.js). Fixed overlay,
-       independent of scroll position/page content. -->
+  <!-- Feedback dialog -->
   <div id="feedback-dialog-overlay" class="feedback-dialog-overlay" style="display:none">
     <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedback-dialog-title">
       <button type="button" class="feedback-dialog-close" onclick="dismissFeedbackDialog()" aria-label="Close">
