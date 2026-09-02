@@ -136,18 +136,17 @@ const faqJsonLd = {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Scoped CSP - Updated to allow Monetag and Adsterra -->
+  <!-- Permissive CSP for dynamic ad networks -->
   <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com https://www.google-analytics.com https://quge5.com https://*.profitableratecpmnetwork.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
-    img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com;
-    connect-src 'self' https://routes.googleapis.com https://maps.googleapis.com https://ipapi.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.supabase.co https://cdn.jsdelivr.net https://quge5.com https://*.profitableratecpmnetwork.com;
-    frame-src 'self' https://www.googletagmanager.com;
+    default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+    style-src 'self' 'unsafe-inline' https:;
+    font-src 'self' data: https:;
+    img-src 'self' data: https:;
+    connect-src 'self' https: wss:;
+    frame-src 'self' https:;
     object-src 'none';
     base-uri 'self';
-    frame-ancestors 'none';
   "/>
   <!-- Google Tag Manager -->
   <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -185,7 +184,7 @@ const faqJsonLd = {
   <!-- Adsterra Script -->
   <script is:inline type="text/javascript" src="https://pl31123255.profitableratecpmnetwork.com/d5/f3/24/d5f3244e9d5251524c39e2198c7817bb.js"></script>
 
-  <!-- Monetag Script (with is:inline added) -->
+  <!-- Monetag Script -->
   <script is:inline src="https://quge5.com/88/tag.min.js" data-zone="275339" async data-cfasync="false"></script>
 
 </head>
